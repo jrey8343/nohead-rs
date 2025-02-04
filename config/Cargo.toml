@@ -1,0 +1,14 @@
+[package]
+name = "nohead-rs_config"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+color-eyre = "0.6.3"
+dotenvy = "0.15.7"
+figment = { version = "0.10.19", features = ["toml", "env"] }
+serde = { version = "1.0.217", features = ["derive"] }
+tracing = "0.1.41"
+
+[dev-dependencies]
+figment = { version = "0.10.19", features = ["toml", "env", "test"] }

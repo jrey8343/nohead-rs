@@ -1,0 +1,14 @@
+[server]
+port = 8080
+ip = "0.0.0.0"
+
+[tracing]
+enable = true
+env_filter = "nohead_rs=debug,tower_http=debug,axum::rejection=trace"
+
+[database]
+uri = "sqlite://nohead_rs.db"
+
+[static_assets]
+precompressed = false
+path = "assets"
