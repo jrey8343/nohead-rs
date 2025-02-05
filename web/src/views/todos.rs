@@ -1,21 +1,30 @@
 use axum::response::{IntoResponse, Response};
-use nohead_rs_db::entities::todo::Todo as TodoEntity;
+use axum_flash::IncomingFlashes;
+use nohead_rs_db::entities::todo::Todo;
 use rinja_axum::Template;
 
 pub enum TodoView {
-    Index(Index),
+    Index(Vec<Todo>, IncomingFlashes),
+    Show(Todo, IncomingFlashes),
 }
 
 #[derive(Debug, Template)]
 #[template(path = "todos/index.html")]
 pub struct Index {
-    todos: Vec<TodoEntity>,
+    pub todos: Vec<Todo>,
+}
+
+#[derive(Debug, Template)]
+#[template(path = "todos/show.html")]
+pub struct Show {
+    pub todo: Todo,
 }
 
 impl IntoResponse for TodoView {
     fn into_response(self) -> Response {
         match self {
-            TodoView::Index(v) => v.into_response(),
+            TodoView::Index(todos, flashes) => Index { todos }.into_response(),
+            TodoView::Show(todo, flashes) => Show { todo }.into_response(),
         }
     }
 }

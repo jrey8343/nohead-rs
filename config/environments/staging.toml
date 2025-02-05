@@ -11,4 +11,4 @@ uri = "sqlite://nohead_rs.db"
 
 [static_assets]
 precompressed = true
-path = "assets"
+path = "static"

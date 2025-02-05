@@ -6,8 +6,9 @@ use axum::{
 use axum_flash::{Flash, IncomingFlashes};
 use nohead_rs_db::{DeserializeOwned, Validate};
 
-use crate::state::SharedAppState;
+use crate::state::AppState;
 
+pub mod home;
 pub mod todos;
 
 /// ------------------------------------------------------------------------
@@ -28,7 +29,7 @@ pub mod todos;
 ///     type Error = ExampleError;
 ///     
 ///
-///     fn router() -> Router<SharedAppState> {
+///     fn router() -> Router<AppState> {
 ///         Router::new()
 ///         .route("/", get(Self::index))
 ///         .route("/", post(Self::create))
@@ -38,7 +39,7 @@ pub mod todos;
 ///     }
 ///
 ///     fn index(
-///         State(app_state): State<SharedAppState>,
+///         State(app_state): State<AppState>,
 ///         flashes: IncomingFlashes,
 ///         ) -> Result<(IncomingFlashes, Self::View), Self::Error> {
 ///         // your handler implementation here
@@ -55,31 +56,31 @@ pub trait Controller {
     type Error: IntoResponse;
 
     /// Produces a app router with all methods for the Controller
-    fn router() -> Router<SharedAppState>;
+    fn router() -> Router<AppState>;
 
     /// Index handler to list all records
     async fn read_all(
-        State(app_state): State<SharedAppState>,
+        State(app_state): State<AppState>,
         flashes: IncomingFlashes,
     ) -> Result<(IncomingFlashes, Self::View), Self::Error>;
 
     /// Create handler to create a new record
     async fn create(
         flash: Flash,
-        State(app_state): State<SharedAppState>,
+        State(app_state): State<AppState>,
         Form(record): Form<Self::EntityChangeset>,
     ) -> Result<(Flash, Redirect), Self::Error>;
 
     async fn create_batch(
         flash: Flash,
-        State(app_state): State<SharedAppState>,
+        State(app_state): State<AppState>,
         Form(records): Form<Vec<Self::EntityChangeset>>,
     ) -> Result<(Flash, Redirect), Self::Error>;
 
     /// Show handler to display a single record
     async fn read_one(
         Path(id): Path<Self::Id>,
-        State(app_state): State<SharedAppState>,
+        State(app_state): State<AppState>,
         flashes: IncomingFlashes,
     ) -> Result<(IncomingFlashes, Self::View), Self::Error>;
 
@@ -87,14 +88,14 @@ pub trait Controller {
     async fn update(
         flash: Flash,
         Path(id): Path<Self::Id>,
-        State(app_state): State<SharedAppState>,
+        State(app_state): State<AppState>,
         form: Form<Self::EntityChangeset>,
     ) -> Result<(Flash, Redirect), Self::Error>;
 
     /// Delete handler to delete a single record
     async fn delete(
         flash: Flash,
-        Path(id): Path<i64>,
-        State(app_state): State<SharedAppState>,
+        Path(id): Path<Self::Id>,
+        State(app_state): State<AppState>,
     ) -> Result<(Flash, Redirect), Self::Error>;
 }

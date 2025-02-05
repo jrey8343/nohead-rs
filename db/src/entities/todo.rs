@@ -1,13 +1,13 @@
+#[cfg(feature = "test-helpers")]
+use fake::{Dummy, faker::lorem::en::*};
+
 use async_trait::async_trait;
-use fake::Dummy;
-use fake::faker::lorem::en::Sentence;
 use serde::{Deserialize, Serialize};
-use sqlx::prelude::FromRow;
+use sqlx::{Sqlite, SqlitePool, prelude::FromRow};
 use validator::Validate;
 
-use crate::Error;
-
 use super::Entity;
+use crate::{Error, transaction};
 
 /// A todo item.
 #[derive(Serialize, Debug, Deserialize, FromRow)]
@@ -45,8 +45,8 @@ impl Entity for Todo {
     type Changeset = TodoChangeset;
 
     async fn load_all<'a>(
-        executor: impl sqlx::Executor<'_, Database = sqlx::Sqlite>,
-    ) -> Result<Vec<Todo>, Error> {
+        executor: impl sqlx::Executor<'_, Database = Sqlite>,
+    ) -> Result<Vec<Self::Record<'a>>, Error> {
         let todos = sqlx::query_as!(Todo, "SELECT id, description FROM todos")
             .fetch_all(executor)
             .await?;
@@ -56,18 +56,19 @@ impl Entity for Todo {
 
     async fn load<'a>(
         id: String,
-        executor: impl sqlx::Executor<'_, Database = sqlx::Sqlite>,
-    ) -> Result<Option<Todo>, Error> {
+        executor: impl sqlx::Executor<'_, Database = Sqlite>,
+    ) -> Result<Todo, Error> {
         let todo = sqlx::query_as!(Todo, "SELECT id, description FROM todos WHERE id = ?", id)
             .fetch_optional(executor)
-            .await?;
+            .await?
+            .ok_or(Error::NoRecordFound)?;
 
         Ok(todo)
     }
 
     async fn create<'a>(
         changeset: TodoChangeset,
-        executor: impl sqlx::Executor<'_, Database = sqlx::Sqlite>,
+        executor: impl sqlx::Executor<'_, Database = Sqlite>,
     ) -> Result<Todo, Error> {
         let todo = sqlx::query_as!(
             Todo,
@@ -80,10 +81,28 @@ impl Entity for Todo {
         Ok(todo)
     }
 
+    async fn create_batch(
+        records: Vec<TodoChangeset>,
+        db_pool: &SqlitePool,
+    ) -> Result<Vec<Todo>, Error> {
+        let mut tx = transaction(db_pool).await?;
+
+        let mut results: Vec<Self::Record<'_>> = vec![];
+
+        for record in records {
+            let result = Self::create(record, &mut *tx).await?;
+            results.push(result);
+        }
+
+        tx.commit().await?;
+
+        Ok(results)
+    }
+
     async fn update<'a>(
         id: String,
         record: TodoChangeset,
-        executor: impl sqlx::Executor<'_, Database = sqlx::Sqlite>,
+        executor: impl sqlx::Executor<'_, Database = Sqlite>,
     ) -> Result<Todo, Error> {
         let todo = sqlx::query_as!(
             Todo,
@@ -99,7 +118,7 @@ impl Entity for Todo {
 
     async fn delete<'a>(
         id: String,
-        executor: impl sqlx::Executor<'_, Database = sqlx::Sqlite>,
+        executor: impl sqlx::Executor<'_, Database = Sqlite>,
     ) -> Result<Todo, Error> {
         let todo = sqlx::query_as!(
             Todo,
@@ -110,5 +129,19 @@ impl Entity for Todo {
         .await?;
 
         Ok(todo)
+    }
+    async fn delete_batch(keys: Vec<Self::Id>, db_pool: &SqlitePool) -> Result<Vec<Todo>, Error> {
+        let mut tx = transaction(db_pool).await?;
+
+        let mut results: Vec<Self::Record<'_>> = vec![];
+
+        for id in keys {
+            let result = Self::delete(id, &mut *tx).await?;
+            results.push(result);
+        }
+
+        tx.commit().await?;
+
+        Ok(results)
     }
 }

@@ -41,9 +41,15 @@ pub async fn connect_pool(config: &DatabaseConfig) -> Result<DbPool, Error> {
 /// Errors that can occur as a result of a data layer operation.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
+    /// No record was found, e.g. when loading a record by ID. This variant is different from
+    /// `Error::DbError(sqlx::Error::RowNotFound)` in that the latter indicates a bug, and
+    /// `Error::NoRecordFound` does not. It merely originates from [sqlx::Executor::fetch_optional]
+    /// returning `None`.
+    #[error("no record found")]
+    NoRecordFound,
     /// General database error, e.g. communicating with the database failed
     #[error("database query failed")]
-    DbError(#[from] sqlx::Error),
+    DatabaseError(#[from] sqlx::Error),
     #[error("validation failed")]
     /// An invalid changeset was passed to a writing operation such as creating or updating a record.
     ValidationError(#[from] validator::ValidationErrors),

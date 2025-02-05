@@ -1,24 +1,21 @@
 use std::path::Path;
 
-use axum::routing::get;
+use axum::Router;
 use tower::ServiceBuilder;
-use tower_http::{
-    services::{ServeDir, ServeFile},
-    set_status::SetStatus,
-    trace::TraceLayer,
+use tower_http::{services::ServeDir, trace::TraceLayer};
+
+use crate::{
+    controllers::{Controller, home::HomeController, todos::TodoController},
+    state::AppState,
 };
 
-use crate::state::AppState;
+pub fn init_router(app_state: &AppState) -> Router {
+    let static_assets = ServeDir::new(Path::new(env!("CARGO_MANIFEST_DIR")).join("static"));
 
-pub fn init_router(app_state: &AppState) -> axum::Router {
-    axum::Router::new()
-        .route("/", get(|| async { "Hello, World!" }))
-        .fallback_service(serve_assets(app_state))
+    Router::new()
+        .nest("/", HomeController::router())
+        .nest("/todos", TodoController::router())
+        .nest_service("/static", static_assets)
         .with_state(app_state.clone())
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
-}
-
-fn serve_assets(app_state: &AppState) -> ServeDir<SetStatus<ServeFile>> {
-    ServeDir::new(Path::new(&app_state.config.static_assets.path))
-        .not_found_service(ServeFile::new("assets/404.html"))
 }

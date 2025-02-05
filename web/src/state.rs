@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use axum::extract::FromRef;
 use axum_flash::{Config as FlashKey, Key};
 use color_eyre::Result;
@@ -38,8 +36,3 @@ impl AppState {
         })
     }
 }
-
-/// The application's state as it is shared across the application, e.g. in controllers and middlewares.
-///
-/// This is the [`AppState`] struct wrappend in an [`std::sync::Arc`].
-pub type SharedAppState = Arc<AppState>;

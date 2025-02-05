@@ -1,11 +1,10 @@
-cargo-features = ["codegen-backend", "profile-rustflags"]
+cargo-features = ["profile-rustflags"]
 
 [workspace]
 members = ['web', 'db', 'config']
 resolver = '2'
 
 [profile.dev]
-codegen-backend = "cranelift"
 rustflags = ["-Z", "threads=8"]
 opt-level = 1
 
