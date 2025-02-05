@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 nohead-rs_config = { path = "../config" }
+nohead-rs_db = { path = "../db" }
 
 axum = { version = "0.8.1", features = ["tracing"] }
 color-eyre = "0.6.3"

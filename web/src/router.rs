@@ -8,17 +8,17 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use crate::state::State;
+use crate::state::AppState;
 
-pub fn init_router(state: &State) -> axum::Router {
+pub fn init_router(app_state: &AppState) -> axum::Router {
     axum::Router::new()
         .route("/", get(|| async { "Hello, World!" }))
-        .fallback_service(serve_assets(state))
-        .with_state(state.clone())
+        .fallback_service(serve_assets(app_state))
+        .with_state(app_state.clone())
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
 }
 
-fn serve_assets(state: &State) -> ServeDir<SetStatus<ServeFile>> {
-    ServeDir::new(Path::new(&state.config.static_assets.path))
+fn serve_assets(app_state: &AppState) -> ServeDir<SetStatus<ServeFile>> {
+    ServeDir::new(Path::new(&app_state.config.static_assets.path))
         .not_found_service(ServeFile::new("assets/404.html"))
 }

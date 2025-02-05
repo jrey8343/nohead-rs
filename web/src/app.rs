@@ -5,11 +5,11 @@ use axum::{Router, serve};
 use color_eyre::Result;
 use tokio::signal;
 
-use crate::{router::init_router, state::State, tracing::Tracing};
+use crate::{router::init_router, state::AppState, tracing::Tracing};
 
 pub struct App {
     pub router: Router,
-    pub state: State,
+    pub app_state: AppState,
 }
 
 impl App {
@@ -17,10 +17,10 @@ impl App {
     // this is useful for testing purposes
     // where axum_test will run a
     // random port
-    pub async fn build(state: State) -> Result<Self> {
-        let router = init_router(&state);
+    pub async fn build(app_state: AppState) -> Result<Self> {
+        let router = init_router(&app_state);
 
-        Ok(Self { router, state })
+        Ok(Self { router, app_state })
     }
 
     // Boots up the app on the configured binding
@@ -31,20 +31,20 @@ impl App {
     pub async fn boot(env: Environment) -> Result<()> {
         color_eyre::install()?;
 
-        let state = State::build(env).await?;
+        let app_state = AppState::build(env).await?;
 
-        Tracing::init(&state.config.tracing);
+        Tracing::init(&app_state.config.tracing);
 
-        let app = App::build(state).await?;
+        let app = App::build(app_state).await?;
 
         // run it
         let listener = tokio::net::TcpListener::bind(&format!(
             "{}:{}",
-            app.state.config.server.ip, app.state.config.server.port
+            app.app_state.config.server.ip, app.app_state.config.server.port
         ))
         .await?;
 
-        debug!("listening on {}", app.state.config.server.addr());
+        debug!("listening on {}", app.app_state.config.server.addr());
 
         serve(listener, app.router)
             .with_graceful_shutdown(async move {

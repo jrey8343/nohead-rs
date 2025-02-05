@@ -4,3 +4,17 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+color-eyre = "0.6.3"
+nohead-rs_config = { path = "../config" }
+
+serde = { version = "1.0.217", features = ["derive"] }
+sqlx = { version = "0.8.3", default-features = false, features = [
+  "sqlite",
+  "runtime-tokio-rustls",
+  "macros",
+  "uuid",
+  "chrono",
+  "migrate",
+] }
+thiserror = "2.0.11"
+validator = { version = "0.20.0", features = ["derive"] }
