@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1" />
+        {# enable swapping for CONFLICT and UNPROCESSABLE_ENTITY error responses #}
+        <meta name=""
+              content='{ "responseHandling": [ {"code":"409", "swap": true}, {"code":"422", "swap": true} ] }' />
+
+        <title>
+            {% block title %}{{ title }} - nohead-rs{% endblock %}
+        </title>
+        {% block head %}{% endblock %}
+        <script src="/assets/static/htmx.min.js"></script>
+        <script src="/assets/static/alpine.min.js"
+                defer></script>
+        <link rel="stylesheet"
+              href="https://unpkg.com/missing.css@1.1.3" />
+    </head>
+    <body hx-swap="outerHTML">
+        <nav>
+            <a href="/">Home</a>
+            <a href="/todos">Todos</a>
+        </nav>
+        {% block content %}{% endblock %}
+    </body>
+</html>

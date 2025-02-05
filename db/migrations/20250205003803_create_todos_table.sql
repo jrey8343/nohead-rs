@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS todos
+(
+    id TEXT PRIMARY KEY NOT NULL,
+    description TEXT NOT NULL
+)

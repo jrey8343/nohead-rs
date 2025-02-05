@@ -3,10 +3,15 @@ name = "nohead-rs_db"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+test-helpers = ["dep:fake"]
+
 [dependencies]
-color-eyre = "0.6.3"
 nohead-rs_config = { path = "../config" }
 
+async-trait = "0.1.86"
+color-eyre = "0.6.3"
+fake = { version = "3.1.0", features = ["derive"], optional = true }
 serde = { version = "1.0.217", features = ["derive"] }
 sqlx = { version = "0.8.3", default-features = false, features = [
   "sqlite",

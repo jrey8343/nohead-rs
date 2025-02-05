@@ -7,7 +7,8 @@ edition = "2024"
 nohead-rs_config = { path = "../config" }
 nohead-rs_db = { path = "../db" }
 
-axum = { version = "0.8.1", features = ["tracing"] }
+rinja = { version = "0.3.5", features = ["with-axum"] }
+axum = { version = "0.7.9", features = ["tracing", "macros"] }
 color-eyre = "0.6.3"
 tokio = { version = "1.43.0", features = [
   "macros",
@@ -20,4 +21,5 @@ tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 tracing-error = "0.2.1"
 thiserror = "2.0.11"
-rinja = { version = "0.3.5", features = ["with-axum"] }
+rinja_axum = "0.3.5"
+axum-flash = "0.8.0"

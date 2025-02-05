@@ -1,7 +1,9 @@
 use nohead_rs_config::DatabaseConfig;
 use sqlx::{Sqlite, Transaction, sqlite::SqlitePoolOptions};
 
+pub use serde::de::DeserializeOwned;
 pub use sqlx::SqlitePool as DbPool;
+pub use validator::Validate;
 
 /// Entity definitions and related functions
 pub mod entities;

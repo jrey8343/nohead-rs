@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Todos{% endblock %}
+
+{% block content %}
+    <h1>Your Todos</h1>
+    <ul>
+        {% for todo in todos %}
+            <li>
+                <a href="/todos/{{ todo.id }}">{{ todo.description }}</a>
+                <button hx-delete="/todos/{{ todo.id }}"
+                        hx-swap="delete"
+                        hx-target="closest li">X</button>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Add a Todo</h2>
+    <form hx-post="/todos" hx-target="body" hx-target-errors="#errors">
+        <label>
+            Todo:
+            <input type="text" name="description" />
+            <span id="description-errors"></span>
+            <button type="submit">Add Todo</button>
+        </label>
+    </form>
+    <span id="errors"></span>
+{% endblock %}

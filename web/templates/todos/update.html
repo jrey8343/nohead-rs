@@ -1,0 +1,7 @@
+<form hx-put="/todos/{{ todo.id }}" hx-target="this">
+    <label>
+        Description:
+        <input type="text" name="description" value="{{ todo.description }}" />
+    </label>
+    <button type="submit">Update Todo</button>
+</form>
