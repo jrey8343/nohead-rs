@@ -54,7 +54,7 @@ impl IntoResponse for Error {
             }
         }
 
-        // TODO: Return a defaul error view here.
+        // TODO: Return a default error view here.
         self.status_code().into_response()
     }
 }

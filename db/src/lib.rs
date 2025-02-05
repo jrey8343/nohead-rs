@@ -31,12 +31,9 @@ pub async fn transaction(db_pool: &DbPool) -> Result<Transaction<'static, Sqlite
 
 /// Creates a connection pool to the database specified in the passed [`{{project-name}}-config::DatabaseConfig`]
 pub async fn connect_pool(config: &DatabaseConfig) -> Result<DbPool, Error> {
-    dbg!("CONNECTING TO DATABASE: {}", &config.url);
-    //FIX: Need to fix connection to Test Database
     let pool = SqlitePoolOptions::new()
         .connect(config.url.as_str())
         .await?;
-    dbg!("CONNECTED TO DATABASE");
 
     Ok(pool)
 }

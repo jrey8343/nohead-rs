@@ -4,7 +4,7 @@ use sqlx::SqlitePool;
 use crate::{test_request, test_request_with_db};
 
 #[tokio::test]
-async fn index_works() {
+async fn index_page_works() {
     test_request::<_, _>(|request| async move {
         let response = request.get("/todos").await;
         response.assert_status_ok()
@@ -12,8 +12,8 @@ async fn index_works() {
     .await;
 }
 
-#[sqlx::test]
-async fn create_redirects_and_displays_new_todo_on_success(pool: SqlitePool) {
+#[sqlx::test(migrator = "crate::MIGRATOR")]
+async fn create_todo_redirects_on_success(pool: SqlitePool) {
     let test_todo = "testing a create".to_string();
 
     test_request_with_db::<_, _>(pool, |request| async move {
@@ -41,7 +41,7 @@ async fn create_redirects_and_displays_new_todo_on_success(pool: SqlitePool) {
     .await
 }
 
-#[sqlx::test]
+#[sqlx::test(migrator = "crate::MIGRATOR")]
 async fn create_persists_todo_in_database(pool: SqlitePool) {
     let test_todo = "testing a create".to_string();
 
@@ -64,7 +64,7 @@ async fn create_persists_todo_in_database(pool: SqlitePool) {
     .await
 }
 
-#[sqlx::test]
+#[sqlx::test(migrator = "crate::MIGRATOR")]
 async fn create_throws_422_for_invalid_form_input(pool: SqlitePool) {
     test_request_with_db::<_, _>(pool, |request| async move {
         let response = request
@@ -79,7 +79,7 @@ async fn create_throws_422_for_invalid_form_input(pool: SqlitePool) {
     .await
 }
 
-#[sqlx::test]
+#[sqlx::test(migrator = "crate::MIGRATOR")]
 async fn delete_works(pool: SqlitePool) {
     let todo = Todo {
         id: 1,
@@ -119,7 +119,7 @@ async fn delete_works(pool: SqlitePool) {
     .await
 }
 
-#[sqlx::test]
+#[sqlx::test(migrator = "crate::MIGRATOR")]
 async fn update_works(pool: SqlitePool) {
     let todo = Todo {
         id: 1,

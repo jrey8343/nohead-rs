@@ -4,16 +4,17 @@ use axum_test::{TestServer, TestServerBuilder};
 use nohead_rs_config::Environment;
 use nohead_rs_web::{app::App, state::AppState, tracing::Tracing};
 use sqlx::SqlitePool;
-use tracing::info;
 
 mod todos_test;
 
-pub fn lazy_tracing(app_state: &AppState) {
+pub static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("../db/migrations");
+
+fn lazy_tracing(app_state: &AppState) {
     static TRACING: OnceLock<()> = OnceLock::new();
     TRACING.get_or_init(|| Tracing::init(&app_state.config.tracing));
 }
 
-pub fn lazy_eyre() {
+fn lazy_eyre() {
     static EYRE: OnceLock<()> = OnceLock::new();
     EYRE.get_or_init(|| color_eyre::install().expect("failed to initialize Eyre"));
 }
@@ -25,7 +26,6 @@ where
 {
     lazy_eyre();
 
-    info!("booting up");
     let mut app_state = AppState::build(Environment::Test)
         .await
         .expect("failed to build app state");

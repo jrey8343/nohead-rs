@@ -67,13 +67,13 @@ impl Entity for Todo {
     }
 
     async fn create<'a>(
-        changeset: TodoChangeset,
+        todo: TodoChangeset,
         executor: impl sqlx::Executor<'_, Database = Sqlite>,
     ) -> Result<Todo, Error> {
         let todo = sqlx::query_as!(
             Todo,
             "INSERT INTO todos (description) VALUES (?) RETURNING id, description",
-            changeset.description
+            todo.description
         )
         .fetch_one(executor)
         .await?;
@@ -82,15 +82,15 @@ impl Entity for Todo {
     }
 
     async fn create_batch(
-        records: Vec<TodoChangeset>,
+        todos: Vec<TodoChangeset>,
         db_pool: &SqlitePool,
     ) -> Result<Vec<Todo>, Error> {
         let mut tx = transaction(db_pool).await?;
 
         let mut results: Vec<Self::Record<'_>> = vec![];
 
-        for record in records {
-            let result = Self::create(record, &mut *tx).await?;
+        for todo in todos {
+            let result = Self::create(todo, &mut *tx).await?;
             results.push(result);
         }
 
@@ -101,13 +101,13 @@ impl Entity for Todo {
 
     async fn update<'a>(
         id: i64,
-        record: TodoChangeset,
+        todo: TodoChangeset,
         executor: impl sqlx::Executor<'_, Database = Sqlite>,
     ) -> Result<Todo, Error> {
         let todo = sqlx::query_as!(
             Todo,
             "UPDATE todos SET description = ? WHERE id = ? RETURNING id, description",
-            record.description,
+            todo.description,
             id
         )
         .fetch_one(executor)
@@ -130,12 +130,12 @@ impl Entity for Todo {
 
         Ok(todo)
     }
-    async fn delete_batch(keys: Vec<Self::Id>, db_pool: &SqlitePool) -> Result<Vec<Todo>, Error> {
+    async fn delete_batch(ids: Vec<Self::Id>, db_pool: &SqlitePool) -> Result<Vec<Todo>, Error> {
         let mut tx = transaction(db_pool).await?;
 
         let mut results: Vec<Self::Record<'_>> = vec![];
 
-        for id in keys {
+        for id in ids {
             let result = Self::delete(id, &mut *tx).await?;
             results.push(result);
         }

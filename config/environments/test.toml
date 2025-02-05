@@ -7,7 +7,7 @@ enable = true
 env_filter = "nohead_rs=debug,tower_http=debug,axum::rejection=trace"
 
 [database]
-uri = "sqlite://nohead_rs.db"
+uri = "sqlite://../db/nohead_rs__test.db"
 
 [static_assets]
 precompressed = false
