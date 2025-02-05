@@ -13,7 +13,7 @@ use crate::{Error, transaction};
 #[derive(Serialize, Debug, Deserialize, FromRow)]
 pub struct Todo {
     /// The id of the record.
-    pub id: String,
+    pub id: i64,
     /// The description, i.e. what to do.
     pub description: String,
 }
@@ -27,8 +27,8 @@ pub struct Todo {
 /// ```
 /// let todo_changeset: TodoChangeset = Faker.fake();
 /// ```
-#[derive(Deserialize, Validate, Clone)]
-#[cfg_attr(feature = "test-helpers", derive(Serialize, Dummy))]
+#[derive(Deserialize, Serialize, Validate, Clone)]
+#[cfg_attr(feature = "test-helpers", derive(Dummy))]
 pub struct TodoChangeset {
     /// The description must be at least 1 character long.
     #[cfg_attr(feature = "test-helpers", dummy(faker = "Sentence(3..8)"))]
@@ -38,7 +38,7 @@ pub struct TodoChangeset {
 
 #[async_trait]
 impl Entity for Todo {
-    type Id = String;
+    type Id = i64;
 
     type Record<'a> = Todo;
 
@@ -55,7 +55,7 @@ impl Entity for Todo {
     }
 
     async fn load<'a>(
-        id: String,
+        id: i64,
         executor: impl sqlx::Executor<'_, Database = Sqlite>,
     ) -> Result<Todo, Error> {
         let todo = sqlx::query_as!(Todo, "SELECT id, description FROM todos WHERE id = ?", id)
@@ -100,7 +100,7 @@ impl Entity for Todo {
     }
 
     async fn update<'a>(
-        id: String,
+        id: i64,
         record: TodoChangeset,
         executor: impl sqlx::Executor<'_, Database = Sqlite>,
     ) -> Result<Todo, Error> {
@@ -117,7 +117,7 @@ impl Entity for Todo {
     }
 
     async fn delete<'a>(
-        id: String,
+        id: i64,
         executor: impl sqlx::Executor<'_, Database = Sqlite>,
     ) -> Result<Todo, Error> {
         let todo = sqlx::query_as!(

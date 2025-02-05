@@ -23,8 +23,8 @@ pub struct Show {
 impl IntoResponse for TodoView {
     fn into_response(self) -> Response {
         match self {
-            TodoView::Index(todos, flashes) => Index { todos }.into_response(),
-            TodoView::Show(todo, flashes) => Show { todo }.into_response(),
+            TodoView::Index(todos, _flashes) => Index { todos }.into_response(),
+            TodoView::Show(todo, _flashes) => Show { todo }.into_response(),
         }
     }
 }

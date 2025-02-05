@@ -18,7 +18,7 @@ pub struct TodoController;
 
 #[async_trait]
 impl Controller for TodoController {
-    type Id = String;
+    type Id = i64;
 
     type View = TodoView;
 
