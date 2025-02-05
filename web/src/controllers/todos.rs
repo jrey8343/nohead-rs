@@ -32,7 +32,7 @@ impl Controller for TodoController {
             .route("/batch", post(Self::create_batch))
             .route(
                 "/:id",
-                get(Self::read_one).patch(Self::update).delete(Self::delete),
+                get(Self::read_one).put(Self::update).delete(Self::delete),
             )
     }
 

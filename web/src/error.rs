@@ -39,15 +39,19 @@ impl IntoResponse for Error {
         match self {
             Error::Database(nohead_rs_db::Error::NoRecordFound) => {
                 // TODO: Return a not found view here.
+
+                return (self.status_code(), "no record found".to_string()).into_response();
             }
             Error::Database(nohead_rs_db::Error::ValidationError(ref err)) => {
                 // TODO: Return a validation error view here.
+                return (self.status_code(), err.to_string()).into_response();
             }
             Error::Database(nohead_rs_db::Error::DatabaseError(ref err)) => {
                 error!(
                     "an error occured while interacting with the database: {:?}",
                     err
                 );
+                return (self.status_code(), err.to_string()).into_response();
             }
             Error::Unexpected(ref err) => {
                 error!("an internal server error occured: {:?}", err);

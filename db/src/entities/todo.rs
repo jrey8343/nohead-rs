@@ -32,7 +32,7 @@ pub struct Todo {
 pub struct TodoChangeset {
     /// The description must be at least 1 character long.
     #[cfg_attr(feature = "test-helpers", dummy(faker = "Sentence(3..8)"))]
-    #[validate(length(min = 1))]
+    #[validate(length(min = 5))]
     pub description: String,
 }
 
@@ -110,8 +110,9 @@ impl Entity for Todo {
             todo.description,
             id
         )
-        .fetch_one(executor)
-        .await?;
+        .fetch_optional(executor)
+        .await?
+        .ok_or(Error::NoRecordFound)?;
 
         Ok(todo)
     }
@@ -125,8 +126,9 @@ impl Entity for Todo {
             "DELETE FROM todos WHERE id = ? RETURNING id, description",
             id
         )
-        .fetch_one(executor)
-        .await?;
+        .fetch_optional(executor)
+        .await?
+        .ok_or(Error::NoRecordFound)?;
 
         Ok(todo)
     }
