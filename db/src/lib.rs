@@ -5,6 +5,8 @@ pub use serde::de::DeserializeOwned;
 pub use sqlx::SqlitePool as DbPool;
 pub use sqlx::test as db_test;
 pub use validator::Validate;
+
+/// Custom migrator set to the correct path within the api testing environment
 pub static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("../db/migrations");
 
 /// Entity definitions and related functions
