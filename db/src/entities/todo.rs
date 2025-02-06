@@ -27,12 +27,12 @@ pub struct Todo {
 /// ```
 /// let todo_changeset: TodoChangeset = Faker.fake();
 /// ```
-#[derive(Deserialize, Serialize, Validate, Clone)]
-#[cfg_attr(feature = "test-helpers", derive(Dummy))]
+#[derive(Deserialize, Validate, Clone)]
+#[cfg_attr(feature = "test-helpers", derive(Serialize, Dummy))]
 pub struct TodoChangeset {
     /// The description must be at least 1 character long.
     #[cfg_attr(feature = "test-helpers", dummy(faker = "Sentence(3..8)"))]
-    #[validate(length(min = 5))]
+    #[validate(length(min = 1, message = "Description must be at least 1 character long"))]
     pub description: String,
 }
 

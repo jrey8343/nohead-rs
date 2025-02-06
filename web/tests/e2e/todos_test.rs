@@ -1,7 +1,9 @@
-use nohead_rs_db::entities::todo::{Todo, TodoChangeset};
-use sqlx::SqlitePool;
-
-use crate::{test_request, test_request_with_db};
+use fake::{Fake as _, Faker};
+use nohead_rs_db::{
+    DbPool, MIGRATOR,
+    entities::todo::{Todo, TodoChangeset},
+};
+use nohead_rs_web::test_helpers::{test_request, test_request_with_db};
 
 #[tokio::test]
 async fn index_page_works() {
@@ -12,17 +14,12 @@ async fn index_page_works() {
     .await;
 }
 
-#[sqlx::test(migrator = "crate::MIGRATOR")]
-async fn create_todo_redirects_on_success(pool: SqlitePool) {
-    let test_todo = "testing a create".to_string();
+#[sqlx::test(migrator = "MIGRATOR")]
+async fn create_todo_redirects_on_success(pool: DbPool) {
+    let todo: TodoChangeset = Faker.fake();
 
     test_request_with_db::<_, _>(pool, |request| async move {
-        let response = request
-            .post("/todos")
-            .form(&TodoChangeset {
-                description: test_todo.clone(),
-            })
-            .await;
+        let response = request.post("/todos").form(&todo).await;
 
         response.assert_status_see_other();
 
@@ -36,36 +33,34 @@ async fn create_todo_redirects_on_success(pool: SqlitePool) {
 
         let response = request.get(location).await;
 
-        response.assert_text_contains(test_todo);
+        response.assert_text_contains(todo.description);
     })
     .await
 }
 
-#[sqlx::test(migrator = "crate::MIGRATOR")]
-async fn create_persists_todo_in_database(pool: SqlitePool) {
-    let test_todo = "testing a create".to_string();
+#[sqlx::test(migrator = "MIGRATOR")]
+async fn create_persists_todo_in_database(pool: DbPool) {
+    let todo: TodoChangeset = Faker.fake();
 
     test_request_with_db::<_, _>(pool.clone(), |request| async move {
-        let _response = request
-            .post("/todos")
-            .form(&TodoChangeset {
-                description: test_todo.clone(),
-            })
-            .await;
+        let _response = request.post("/todos").form(&todo).await;
 
-        let saved_todo =
-            sqlx::query_as!(Todo, "SELECT * FROM todos WHERE description = ?", test_todo)
-                .fetch_optional(&pool)
-                .await
-                .unwrap();
+        let saved_todo = sqlx::query_as!(
+            Todo,
+            "SELECT * FROM todos WHERE description = ?",
+            todo.description
+        )
+        .fetch_optional(&pool)
+        .await
+        .unwrap();
 
         assert!(saved_todo.is_some())
     })
     .await
 }
 
-#[sqlx::test(migrator = "crate::MIGRATOR")]
-async fn create_throws_422_for_invalid_form_input(pool: SqlitePool) {
+#[sqlx::test(migrator = "MIGRATOR")]
+async fn create_throws_422_for_invalid_form_input(pool: DbPool) {
     test_request_with_db::<_, _>(pool, |request| async move {
         let response = request
             .post("/todos")
@@ -79,8 +74,8 @@ async fn create_throws_422_for_invalid_form_input(pool: SqlitePool) {
     .await
 }
 
-#[sqlx::test(migrator = "crate::MIGRATOR")]
-async fn delete_works(pool: SqlitePool) {
+#[sqlx::test(migrator = "MIGRATOR")]
+async fn delete_works(pool: DbPool) {
     let todo = Todo {
         id: 1,
         description: "testing a delete".to_string(),
@@ -119,8 +114,8 @@ async fn delete_works(pool: SqlitePool) {
     .await
 }
 
-#[sqlx::test(migrator = "crate::MIGRATOR")]
-async fn update_works(pool: SqlitePool) {
+#[sqlx::test(migrator = "MIGRATOR")]
+async fn update_works(pool: DbPool) {
     let todo = Todo {
         id: 1,
         description: "testing an update".to_string(),
@@ -129,9 +124,7 @@ async fn update_works(pool: SqlitePool) {
     test_request_with_db::<_, _>(pool, |request| async move {
         let response = request
             .put(&format!("/todos/{}", todo.id))
-            .form(&TodoChangeset {
-                description: "testing an update".to_string(),
-            })
+            .form(&Faker.fake::<TodoChangeset>())
             .await;
 
         response.assert_status_ok();
