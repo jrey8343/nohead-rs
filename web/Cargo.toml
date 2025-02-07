@@ -7,16 +7,12 @@ edition = "2024"
 # examples in docs don't run without a running database, etc.
 doctest = false
 
-[features]
-test-helpers = ["dep:axum-test"]
-
 [dependencies]
 nohead-rs_config = { path = "../config" }
 nohead-rs_db = { path = "../db" }
 
 rinja = { version = "0.3.5", features = ["with-axum"] }
 axum = { version = "0.7.9", features = ["tracing", "macros"] }
-axum-test = { version = "16.3.0", optional = true }
 color-eyre = "0.6.3"
 tokio = { version = "1.43.0", features = [
   "macros",
@@ -34,7 +30,7 @@ axum-flash = "0.8.0"
 
 [dev-dependencies]
 nohead-rs_db = { path = "../db", features = ['test-helpers'] }
-nohead-rs_web = { path = ".", features = ["test-helpers"] }
+axum-test = "16.3.0"
 fake = { version = "3.1.0", features = ["derive"] }
 sqlx = { version = "0.8.3", default-features = false, features = [
   "sqlite",

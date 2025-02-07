@@ -70,6 +70,8 @@ impl Entity for Todo {
         todo: TodoChangeset,
         executor: impl sqlx::Executor<'_, Database = Sqlite>,
     ) -> Result<Todo, Error> {
+        todo.validate()?;
+
         let todo = sqlx::query_as!(
             Todo,
             "INSERT INTO todos (description) VALUES (?) RETURNING id, description",
@@ -90,6 +92,8 @@ impl Entity for Todo {
         let mut results: Vec<Self::Record<'_>> = vec![];
 
         for todo in todos {
+            todo.validate()?;
+
             let result = Self::create(todo, &mut *tx).await?;
             results.push(result);
         }
@@ -104,6 +108,8 @@ impl Entity for Todo {
         todo: TodoChangeset,
         executor: impl sqlx::Executor<'_, Database = Sqlite>,
     ) -> Result<Todo, Error> {
+        todo.validate()?;
+
         let todo = sqlx::query_as!(
             Todo,
             "UPDATE todos SET description = ? WHERE id = ? RETURNING id, description",

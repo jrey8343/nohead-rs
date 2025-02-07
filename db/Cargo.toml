@@ -3,6 +3,10 @@ name = "nohead-rs_db"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+# examples in docs don't run without a running database, etc.
+doctest = false
+
 [features]
 test-helpers = ["dep:fake"]
 

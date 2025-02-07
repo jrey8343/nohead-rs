@@ -1385,7 +1385,6 @@ dependencies = [
  "fake",
  "nohead-rs_config",
  "nohead-rs_db",
- "nohead-rs_web",
  "rinja",
  "rinja_axum",
  "sqlx",

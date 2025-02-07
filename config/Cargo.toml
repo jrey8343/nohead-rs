@@ -3,6 +3,10 @@ name = "nohead-rs_config"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+# examples in docs don't run without a running database, etc.
+doctest = false
+
 [dependencies]
 color-eyre = "0.6.3"
 dotenvy = "0.15.7"

@@ -1,9 +1,10 @@
+use super::{test_request, test_request_with_db};
+
 use fake::{Fake as _, Faker};
 use nohead_rs_db::{
     DbPool, MIGRATOR,
     entities::todo::{Todo, TodoChangeset},
 };
-use nohead_rs_web::test_helpers::{test_request, test_request_with_db};
 
 #[tokio::test]
 async fn index_page_works() {
@@ -74,11 +75,11 @@ async fn create_throws_422_for_invalid_form_input(pool: DbPool) {
     .await
 }
 
-#[sqlx::test(migrator = "MIGRATOR")]
+#[sqlx::test(migrator = "MIGRATOR", fixtures("todos"))]
 async fn delete_works(pool: DbPool) {
     let todo = Todo {
         id: 1,
-        description: "testing a delete".to_string(),
+        description: "buy milk".to_string(),
     };
 
     test_request_with_db::<_, _>(pool.clone(), |request| async move {
@@ -114,20 +115,34 @@ async fn delete_works(pool: DbPool) {
     .await
 }
 
-#[sqlx::test(migrator = "MIGRATOR")]
+#[sqlx::test(migrator = "MIGRATOR", fixtures("todos"))]
 async fn update_works(pool: DbPool) {
     let todo = Todo {
         id: 1,
-        description: "testing an update".to_string(),
+        description: "buy milk".to_string(),
     };
+
+    let updated_todo: TodoChangeset = Faker.fake();
 
     test_request_with_db::<_, _>(pool, |request| async move {
         let response = request
             .put(&format!("/todos/{}", todo.id))
-            .form(&Faker.fake::<TodoChangeset>())
+            .form(&updated_todo)
             .await;
 
-        response.assert_status_ok();
+        response.assert_status_see_other();
+
+        // Manually follow the redirection and assert UI reflexts new todo
+        let location = response
+            .headers()
+            .get("location")
+            .expect("unable to get redirect location header from response")
+            .to_str()
+            .unwrap();
+
+        let response = request.get(location).await;
+
+        response.assert_text_contains(updated_todo.description);
     })
     .await
 }
