@@ -1,11 +1,12 @@
 use axum::response::{IntoResponse, Response};
-use axum_flash::IncomingFlashes;
 use nohead_rs_db::entities::todo::Todo;
-use rinja_axum::Template;
+use rinja::Template;
+
+use crate::error::Error;
 
 pub enum TodoView {
-    Index(Vec<Todo>, IncomingFlashes),
-    Show(Todo, IncomingFlashes),
+    Index(Vec<Todo>),
+    Show(Todo),
 }
 
 #[derive(Debug, Template)]
@@ -23,8 +24,14 @@ pub struct Show {
 impl IntoResponse for TodoView {
     fn into_response(self) -> Response {
         match self {
-            TodoView::Index(todos, _flashes) => Index { todos }.into_response(),
-            TodoView::Show(todo, _flashes) => Show { todo }.into_response(),
+            TodoView::Index(todos) => Index { todos }
+                .render()
+                .map_err(Error::Render)
+                .into_response(),
+            TodoView::Show(todo) => Show { todo }
+                .render()
+                .map_err(Error::Render)
+                .into_response(),
         }
     }
 }

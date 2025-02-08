@@ -1,9 +1,9 @@
+use async_trait::async_trait;
 use axum::{
-    Form, Router, async_trait,
+    Form, Router,
     extract::{Path, State},
     response::{IntoResponse, Redirect},
 };
-use axum_flash::{Flash, IncomingFlashes};
 use nohead_rs_db::{DeserializeOwned, Validate};
 
 use crate::state::AppState;
@@ -48,6 +48,7 @@ pub mod todos;
 ///         // ...other methods
 /// ```
 /// ------------------------------------------------------------------------
+
 #[async_trait]
 pub trait Controller {
     type Id: PartialOrd;
@@ -59,43 +60,35 @@ pub trait Controller {
     fn router() -> Router<AppState>;
 
     /// Index handler to list all records
-    async fn read_all(
-        State(app_state): State<AppState>,
-        flashes: IncomingFlashes,
-    ) -> Result<(IncomingFlashes, Self::View), Self::Error>;
+    async fn read_all(State(app_state): State<AppState>) -> Result<Self::View, Self::Error>;
 
     /// Create handler to create a new record
     async fn create(
-        flash: Flash,
         State(app_state): State<AppState>,
         Form(record): Form<Self::EntityChangeset>,
-    ) -> Result<(Flash, Redirect), Self::Error>;
+    ) -> Result<Redirect, Self::Error>;
 
     async fn create_batch(
-        flash: Flash,
         State(app_state): State<AppState>,
         Form(records): Form<Vec<Self::EntityChangeset>>,
-    ) -> Result<(Flash, Redirect), Self::Error>;
+    ) -> Result<Redirect, Self::Error>;
 
     /// Show handler to display a single record
     async fn read_one(
         Path(id): Path<Self::Id>,
         State(app_state): State<AppState>,
-        flashes: IncomingFlashes,
-    ) -> Result<(IncomingFlashes, Self::View), Self::Error>;
+    ) -> Result<Self::View, Self::Error>;
 
     /// Update handler to update a single record
     async fn update(
-        flash: Flash,
         Path(id): Path<Self::Id>,
         State(app_state): State<AppState>,
         form: Form<Self::EntityChangeset>,
-    ) -> Result<(Flash, Redirect), Self::Error>;
+    ) -> Result<Redirect, Self::Error>;
 
     /// Delete handler to delete a single record
     async fn delete(
-        flash: Flash,
         Path(id): Path<Self::Id>,
         State(app_state): State<AppState>,
-    ) -> Result<(Flash, Redirect), Self::Error>;
+    ) -> Result<Redirect, Self::Error>;
 }
