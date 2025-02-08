@@ -1,7 +1,7 @@
 use axum::response::{IntoResponse, Response};
 use rinja::Template;
 
-use crate::error::Error;
+use super::html;
 
 pub enum HomeView {
     Index,
@@ -14,7 +14,7 @@ pub struct Index {}
 impl IntoResponse for HomeView {
     fn into_response(self) -> Response {
         match self {
-            HomeView::Index => Index {}.render().map_err(Error::Render).into_response(),
+            HomeView::Index => html(Index {}),
         }
     }
 }

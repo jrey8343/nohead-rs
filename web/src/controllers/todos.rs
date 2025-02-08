@@ -28,10 +28,10 @@ impl Controller for TodoController {
 
     fn router() -> axum::Router<AppState> {
         Router::new()
-            .route("/", get(Self::read_all).post(Self::create))
-            .route("/batch", post(Self::create_batch))
+            .route("/todos", get(Self::read_all).post(Self::create))
+            .route("/todos/batch", post(Self::create_batch))
             .route(
-                "/:id",
+                "/todos/{id}",
                 get(Self::read_one).put(Self::update).delete(Self::delete),
             )
     }

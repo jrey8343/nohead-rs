@@ -13,8 +13,8 @@ pub fn init_router(app_state: &AppState) -> Router {
     let static_assets = ServeDir::new(Path::new(env!("CARGO_MANIFEST_DIR")).join("static"));
 
     Router::new()
-        .nest("/", HomeController::router())
-        .nest("/todos", TodoController::router())
+        .merge(HomeController::router())
+        .merge(TodoController::router())
         .nest_service("/static", static_assets)
         .with_state(app_state.clone())
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
