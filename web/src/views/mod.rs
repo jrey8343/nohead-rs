@@ -9,7 +9,7 @@ pub mod todos;
 ///
 /// # Parameters
 ///
-/// - `tmpl` - The template to render.
+/// - `tmpl` - The template to render. Must implement the `rinja::Template` trait.
 ///
 /// # Returns
 ///
@@ -20,7 +20,7 @@ pub mod todos;
 /// ```rust
 /// use axum::response::IntoResponse;
 /// use rinja::Template;
-/// use web::views::home::Index;
+/// use web::views::{home::Index, html};
 ///
 /// #[derive(Template)]
 /// #[template(path = "index.html")]
@@ -28,7 +28,7 @@ pub mod todos;
 ///
 /// impl IntoResponse for HomeView {
 ///    fn into_response(self) -> axum::response::Response {
-///    web::views::html(Index {})
+///       html(Index {})
 ///    }
 /// ```
 ///

@@ -47,9 +47,14 @@ impl Entity for Todo {
     async fn load_all<'a>(
         executor: impl sqlx::Executor<'_, Database = Sqlite>,
     ) -> Result<Vec<Self::Record<'a>>, Error> {
-        let todos = sqlx::query_as!(Todo, "SELECT id, description FROM todos")
-            .fetch_all(executor)
-            .await?;
+        let todos = sqlx::query_as!(
+            Todo,
+            r#"select id, description from todos
+
+"#
+        )
+        .fetch_all(executor)
+        .await?;
 
         Ok(todos)
     }
@@ -58,10 +63,16 @@ impl Entity for Todo {
         id: i64,
         executor: impl sqlx::Executor<'_, Database = Sqlite>,
     ) -> Result<Todo, Error> {
-        let todo = sqlx::query_as!(Todo, "SELECT id, description FROM todos WHERE id = ?", id)
-            .fetch_optional(executor)
-            .await?
-            .ok_or(Error::NoRecordFound)?;
+        let todo = sqlx::query_as!(
+            Todo,
+            r#"select id, description from todos where id = ?
+
+"#,
+            id
+        )
+        .fetch_optional(executor)
+        .await?
+        .ok_or(Error::NoRecordFound)?;
 
         Ok(todo)
     }
@@ -74,7 +85,9 @@ impl Entity for Todo {
 
         let todo = sqlx::query_as!(
             Todo,
-            "INSERT INTO todos (description) VALUES (?) RETURNING id, description",
+            r#"insert into todos (description) values (?) returning id, description
+
+"#,
             todo.description
         )
         .fetch_one(executor)
@@ -112,7 +125,9 @@ impl Entity for Todo {
 
         let todo = sqlx::query_as!(
             Todo,
-            "UPDATE todos SET description = ? WHERE id = ? RETURNING id, description",
+            r#"update todos set description = (?) where id = (?) returning id, description
+
+"#,
             todo.description,
             id
         )
@@ -129,7 +144,9 @@ impl Entity for Todo {
     ) -> Result<Todo, Error> {
         let todo = sqlx::query_as!(
             Todo,
-            "DELETE FROM todos WHERE id = ? RETURNING id, description",
+            r#"delete from todos where id = ? returning id, description
+
+"#,
             id
         )
         .fetch_optional(executor)
