@@ -26,11 +26,15 @@ tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 tracing-error = "0.2.1"
 thiserror = "2.0.11"
 async-trait = "0.1.86"
+axum-extra = { version = "0.10.0", features = ["cookie", "cookie-signed"] }
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.138"
 
 [dev-dependencies]
 nohead-rs_db = { path = "../db", features = ['test-helpers'] }
 axum-test = "17.2.0"
 fake = { version = "3.1.0", features = ["derive"] }
+http-body-util = "0.1.2"
 sqlx = { version = "0.8.3", default-features = false, features = [
   "sqlite",
   "runtime-tokio-rustls",
