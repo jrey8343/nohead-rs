@@ -10,7 +10,12 @@ use nohead_rs_db::entities::{
     todo::{Todo, TodoChangeset},
 };
 
-use crate::{error::Error, state::AppState, views::todos::TodoView};
+use crate::{
+    error::Error,
+    middlewares::flash::{Flash, IncomingFlashes},
+    state::AppState,
+    views::todos::TodoView,
+};
 
 use super::Controller;
 
@@ -26,7 +31,7 @@ impl Controller for TodoController {
 
     type Error = Error;
 
-    fn router() -> axum::Router<AppState> {
+    fn router() -> Router<AppState> {
         Router::new()
             .route("/todos", get(Self::read_all).post(Self::create))
             .route("/todos/batch", post(Self::create_batch))
@@ -36,55 +41,69 @@ impl Controller for TodoController {
             )
     }
 
-    async fn read_all(State(app_state): State<AppState>) -> Result<Self::View, Self::Error> {
+    async fn read_all(
+        flashes: IncomingFlashes,
+        State(app_state): State<AppState>,
+    ) -> Result<(IncomingFlashes, Self::View), Self::Error> {
         let todos = Todo::load_all(&app_state.db_pool).await?;
 
-        Ok(TodoView::Index(todos))
+        Ok((flashes.clone(), TodoView::Index(todos, flashes)))
     }
 
     async fn create(
+        flash: Flash,
         State(app_state): State<AppState>,
         Form(record): Form<Self::EntityChangeset>,
-    ) -> Result<Redirect, Self::Error> {
+    ) -> Result<(Flash, Redirect), Self::Error> {
         let todo = Todo::create(record, &app_state.db_pool).await?;
 
-        Ok(Redirect::to(&format!("/todos/{}", todo.id)))
+        Ok((
+            flash.success("✅ created new todo"),
+            Redirect::to(&format!("/todos/{}", todo.id)),
+        ))
     }
 
     async fn create_batch(
+        flash: Flash,
         State(app_state): State<AppState>,
         Form(records): Form<Vec<Self::EntityChangeset>>,
-    ) -> Result<Redirect, Self::Error> {
+    ) -> Result<(Flash, Redirect), Self::Error> {
         let _records = Todo::create_batch(records, &app_state.db_pool).await?;
 
-        Ok(Redirect::to("/todos"))
+        Ok((flash.success("✅ created todos"), Redirect::to("/todos")))
     }
 
     async fn read_one(
+        flashes: IncomingFlashes,
         Path(id): Path<Self::Id>,
         State(app_state): State<AppState>,
-    ) -> Result<Self::View, Self::Error> {
+    ) -> Result<(IncomingFlashes, Self::View), Self::Error> {
         let todo = Todo::load(id, &app_state.db_pool).await?;
 
-        Ok(TodoView::Show(todo))
+        Ok((flashes.clone(), TodoView::Show(todo, flashes)))
     }
 
     async fn update(
+        flash: Flash,
         Path(id): Path<Self::Id>,
         State(app_state): State<AppState>,
         Form(form): Form<Self::EntityChangeset>,
-    ) -> Result<Redirect, Self::Error> {
+    ) -> Result<(Flash, Redirect), Self::Error> {
         let todo = Todo::update(id, form, &app_state.db_pool).await?;
 
-        Ok(Redirect::to(&format!("/todos/{}", todo.id)))
+        Ok((
+            flash.success("✅ updated todo"),
+            Redirect::to(&format!("/todos/{}", todo.id)),
+        ))
     }
 
     async fn delete(
+        flash: Flash,
         Path(id): Path<Self::Id>,
         State(app_state): State<AppState>,
-    ) -> Result<Redirect, Self::Error> {
+    ) -> Result<(Flash, Redirect), Self::Error> {
         let _todo = Todo::delete(id, &app_state.db_pool).await?;
 
-        Ok(Redirect::to("/todos"))
+        Ok((flash.info("deleted todo"), Redirect::to("/todos")))
     }
 }

@@ -6,7 +6,10 @@ use axum::{
 };
 use nohead_rs_db::{DeserializeOwned, Validate};
 
-use crate::state::AppState;
+use crate::{
+    middlewares::flash::{Flash, IncomingFlashes},
+    state::AppState,
+};
 
 pub mod home;
 pub mod todos;
@@ -60,35 +63,43 @@ pub trait Controller {
     fn router() -> Router<AppState>;
 
     /// Index handler to list all records
-    async fn read_all(State(app_state): State<AppState>) -> Result<Self::View, Self::Error>;
+    async fn read_all(
+        flashes: IncomingFlashes,
+        State(app_state): State<AppState>,
+    ) -> Result<(IncomingFlashes, Self::View), Self::Error>;
 
     /// Create handler to create a new record
     async fn create(
+        flash: Flash,
         State(app_state): State<AppState>,
         Form(record): Form<Self::EntityChangeset>,
-    ) -> Result<Redirect, Self::Error>;
+    ) -> Result<(Flash, Redirect), Self::Error>;
 
     async fn create_batch(
+        flash: Flash,
         State(app_state): State<AppState>,
         Form(records): Form<Vec<Self::EntityChangeset>>,
-    ) -> Result<Redirect, Self::Error>;
+    ) -> Result<(Flash, Redirect), Self::Error>;
 
     /// Show handler to display a single record
     async fn read_one(
+        flashes: IncomingFlashes,
         Path(id): Path<Self::Id>,
         State(app_state): State<AppState>,
-    ) -> Result<Self::View, Self::Error>;
+    ) -> Result<(IncomingFlashes, Self::View), Self::Error>;
 
     /// Update handler to update a single record
     async fn update(
+        flash: Flash,
         Path(id): Path<Self::Id>,
         State(app_state): State<AppState>,
         form: Form<Self::EntityChangeset>,
-    ) -> Result<Redirect, Self::Error>;
+    ) -> Result<(Flash, Redirect), Self::Error>;
 
     /// Delete handler to delete a single record
     async fn delete(
+        flash: Flash,
         Path(id): Path<Self::Id>,
         State(app_state): State<AppState>,
-    ) -> Result<Redirect, Self::Error>;
+    ) -> Result<(Flash, Redirect), Self::Error>;
 }

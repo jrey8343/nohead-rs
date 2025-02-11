@@ -25,4 +25,7 @@
         </label>
     </form>
     <span id="errors"></span>
+    {% for flash in flashes %}
+    <p>{{flash.message}}</p>
+    {% endfor %}
 {% endblock %}

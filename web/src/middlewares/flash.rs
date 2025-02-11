@@ -18,7 +18,7 @@
 //!
 //! let app_state = AppState {
 //!     // The key should probably come from configuration
-//!     flash_config: Cloneonfig::new(Key::generate()),
+//!     flash_config: Config::new(Key::generate()),
 //! };
 //!
 //! // Our state type must implement this trait. That is how the config
@@ -184,11 +184,11 @@ pub(crate) fn create_cookie(
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct FlashMessage {
+pub struct FlashMessage {
     #[serde(rename = "l")]
-    level: Level,
+    pub level: Level,
     #[serde(rename = "m")]
-    message: String,
+    pub message: String,
 }
 
 /// Verbosity level of a flash message.
@@ -204,6 +204,19 @@ pub enum Level {
     Warning = 3,
     #[allow(missing_docs)]
     Error = 4,
+}
+
+/// Allow the level to be printed or rendered as text
+impl std::fmt::Display for Level {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Level::Debug => write!(f, "debug"),
+            Level::Info => write!(f, "info"),
+            Level::Success => write!(f, "success"),
+            Level::Warning => write!(f, "warning"),
+            Level::Error => write!(f, "error"),
+        }
+    }
 }
 
 /// Configuration for axum-flash.
@@ -254,7 +267,7 @@ impl fmt::Debug for Config {
 /// See [root module docs](crate) for an example.
 #[derive(Clone)]
 pub struct IncomingFlashes {
-    flashes: Vec<FlashMessage>,
+    pub flashes: Vec<FlashMessage>,
     use_secure_cookies: bool,
     key: Key,
 }
