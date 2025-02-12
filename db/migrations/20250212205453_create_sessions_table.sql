@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS sessions (
+    session_token BLOB PRIMARY KEY NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL REFERENCES users (id) ON DELETE CASCADE
+);
+

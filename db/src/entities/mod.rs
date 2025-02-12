@@ -5,7 +5,9 @@ use validator::Validate;
 
 use crate::Error;
 
+pub mod session;
 pub mod todo;
+pub mod user;
 
 /// ------------------------------------------------------------------------
 /// # An Entity trait to implement common CRUD methods on a database table
