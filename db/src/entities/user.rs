@@ -1,10 +1,15 @@
+use async_trait::async_trait;
 use fake::{
     Dummy, Fake,
     faker::internet::{en::Password, en::SafeEmail},
 };
 use serde::{Deserialize, Serialize};
-use sqlx::prelude::FromRow;
+use sqlx::{Sqlite, SqlitePool, prelude::FromRow};
 use validator::Validate;
+
+use super::Entity;
+use crate::{Error, transaction};
+
 #[derive(Clone, FromRow, Serialize, Debug)]
 pub struct User {
     pub id: i64,
@@ -19,7 +24,7 @@ pub struct User {
 /// Changesets can also be used to generate fake data for tests when the `test-helpers` feature is enabled:
 ///
 /// ```
-/// let todo_changeset: TodoChangeset = Faker.fake();
+/// let user_changeset: UserChangeset = Faker.fake();
 /// ```
 #[derive(Deserialize, Validate, Clone)]
 #[cfg_attr(feature = "test-helpers", derive(Serialize))]
@@ -51,5 +56,144 @@ impl Dummy<UserChangeset> for UserChangeset {
             password: password.clone(),
             confirm_password: password,
         }
+    }
+}
+
+#[async_trait]
+impl Entity for User {
+    type Id = i64;
+
+    type Record<'a> = User;
+
+    type Changeset = UserChangeset;
+    async fn load_all<'a>(
+        executor: impl sqlx::Executor<'_, Database = Sqlite>,
+    ) -> Result<Vec<Self::Record<'a>>, Error> {
+        let users = sqlx::query_as!(
+            User,
+            r#"select id, email, password_hash from users
+
+"#
+        )
+        .fetch_all(executor)
+        .await?;
+
+        Ok(users)
+    }
+
+    async fn load<'a>(
+        id: i64,
+        executor: impl sqlx::Executor<'_, Database = Sqlite>,
+    ) -> Result<User, Error> {
+        let user = sqlx::query_as!(
+            User,
+            r#"select id, email, password_hash from users where id = ?
+
+"#,
+            id
+        )
+        .fetch_optional(executor)
+        .await?
+        .ok_or(Error::NoRecordFound)?;
+
+        Ok(user)
+    }
+
+    async fn create<'a>(
+        user: UserChangeset,
+        executor: impl sqlx::Executor<'_, Database = Sqlite>,
+    ) -> Result<User, Error> {
+        user.validate()?;
+
+        todo!("Hash the password before storing it in the database");
+        let user = sqlx::query_as!(
+            User,
+            r#"insert into users (email, password_hash) values (?, ?) returning id,
+email,
+password_hash
+
+"#,
+            user.email,
+            user.password
+        )
+        .fetch_one(executor)
+        .await?;
+
+        Ok(user)
+    }
+
+    async fn create_batch(
+        users: Vec<UserChangeset>,
+        db_pool: &SqlitePool,
+    ) -> Result<Vec<User>, Error> {
+        let mut tx = transaction(db_pool).await?;
+
+        let mut results: Vec<Self::Record<'_>> = vec![];
+
+        for user in users {
+            user.validate()?;
+
+            let result = Self::create(user, &mut *tx).await?;
+            results.push(result);
+        }
+
+        tx.commit().await?;
+
+        Ok(results)
+    }
+
+    async fn update<'a>(
+        id: i64,
+        user: UserChangeset,
+        executor: impl sqlx::Executor<'_, Database = Sqlite>,
+    ) -> Result<User, Error> {
+        user.validate()?;
+
+        todo!("work out how to update email and password_hash");
+        let user = sqlx::query_as!(
+            User,
+            r#"update users set email = (?) where id = (?) returning id, email, password_hash
+
+"#,
+            user.email,
+            id
+        )
+        .fetch_optional(executor)
+        .await?
+        .ok_or(Error::NoRecordFound)?;
+
+        Ok(user)
+    }
+
+    async fn delete<'a>(
+        id: i64,
+        executor: impl sqlx::Executor<'_, Database = Sqlite>,
+    ) -> Result<User, Error> {
+        let user = sqlx::query_as!(
+            User,
+            r#"delete from users where id = ? returning id, email, password_hash
+
+"#,
+            id
+        )
+        .fetch_optional(executor)
+        .await?
+        .ok_or(Error::NoRecordFound)?;
+
+        Ok(user)
+    }
+    async fn delete_batch(ids: Vec<Self::Id>, db_pool: &SqlitePool) -> Result<Vec<User>, Error> {
+        let mut tx = transaction(db_pool).await?;
+
+        let mut results: Vec<Self::Record<'_>> = vec![];
+
+        for id in ids {
+            let result = Self::delete(id, &mut *tx).await?;
+            results.push(result);
+        }
+
+        tx.commit().await?;
+
+        Ok(results)
     }
 }
