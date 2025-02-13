@@ -8,9 +8,9 @@ use sqlx::{Sqlite, SqlitePool, prelude::FromRow};
 use validator::Validate;
 
 use super::Entity;
-use crate::{Error, transaction};
+use crate::{Error, ResultExt, transaction};
 
-#[derive(Clone, FromRow, Serialize, Debug)]
+#[derive(Clone, FromRow, Deserialize, Debug)]
 pub struct User {
     pub id: i64,
     pub email: String,
@@ -59,6 +59,29 @@ impl Dummy<UserChangeset> for UserChangeset {
     }
 }
 
+/// ------------------------------------------------------------------------
+/// Specific authentication related queries for the User entity.
+/// ------------------------------------------------------------------------
+impl User {
+    pub async fn get_by_email(email: &str, pool: &SqlitePool) -> Result<User, sqlx::Error> {
+        let user = sqlx::query_as!(
+            User,
+            r#"
+           select * from users where email = ?
+
+"#,
+            email
+        )
+        .fetch_one(pool)
+        .await?;
+
+        Ok(user)
+    }
+}
+
+/// ------------------------------------------------------------------------
+/// Generic CRUD related queries for the User entity.
+/// ------------------------------------------------------------------------
 #[async_trait]
 impl Entity for User {
     type Id = i64;
@@ -105,19 +128,20 @@ impl Entity for User {
     ) -> Result<User, Error> {
         user.validate()?;
 
-        todo!("Hash the password before storing it in the database");
         let user = sqlx::query_as!(
             User,
-            r#"insert into users (email, password_hash) values (?, ?) returning id,
-email,
-password_hash
+            r#"
+            insert into users (email, password_hash)
+            values (?, ?)
+            returning *
 
 "#,
             user.email,
             user.password
         )
         .fetch_one(executor)
-        .await?;
+        .await
+        .map_constraint_err()?; // return an app error if user already exists
 
         Ok(user)
     }

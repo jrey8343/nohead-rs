@@ -27,14 +27,28 @@ pub enum Error {
 impl Error {
     fn status_code(&self) -> StatusCode {
         match self {
+            // Template rendering error
             Error::Render(_) => StatusCode::INTERNAL_SERVER_ERROR,
+
+            // Record not found
             Error::Database(nohead_rs_db::Error::NoRecordFound) => StatusCode::NOT_FOUND,
+
+            // Unique constraint violation
+            Error::Database(nohead_rs_db::Error::UniqueConstraint(_)) => {
+                StatusCode::UNPROCESSABLE_ENTITY
+            }
+
+            // Validation error
             Error::Database(nohead_rs_db::Error::ValidationError(_)) => {
                 StatusCode::UNPROCESSABLE_ENTITY
             }
+
+            // General database error
             Error::Database(nohead_rs_db::Error::DatabaseError(_)) => {
                 StatusCode::INTERNAL_SERVER_ERROR
             }
+
+            // Unexpected error
             Error::Unexpected(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -52,6 +66,9 @@ impl IntoResponse for Error {
                 // TODO: Return a not found view here.
 
                 return (self.status_code(), "no record found".to_string()).into_response();
+            }
+            Error::Database(nohead_rs_db::Error::UniqueConstraint(ref err)) => {
+                // TODO: Return a unique constaint error view here.
             }
             Error::Database(nohead_rs_db::Error::ValidationError(ref err)) => {
                 // TODO: Return a validation error view here.

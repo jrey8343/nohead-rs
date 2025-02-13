@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use nohead_rs_config::DatabaseConfig;
 use sqlx::{Sqlite, Transaction, sqlite::SqlitePoolOptions};
 
@@ -51,10 +53,57 @@ pub enum Error {
     /// returning `None`.
     #[error("no record found")]
     NoRecordFound,
+    /// Return `422 Unprocessable Entity` on a unique constraint error.
+    #[error("unique constraint error")]
+    UniqueConstraint(Vec<(String, String)>),
     /// General database error, e.g. communicating with the database failed
     #[error("database query failed")]
     DatabaseError(#[from] sqlx::Error),
     #[error("validation failed")]
     /// An invalid changeset was passed to a writing operation such as creating or updating a record.
     ValidationError(#[from] validator::ValidationErrors),
+}
+
+/// ------------------------------------------------------------------------------------------
+/// A little helper trait for more easily converting database constraint errors into API errors.
+/// ------------------------------------------------------------------------------------------
+/// ```rust,ignore
+/// let user_id = sqlx::query_scalar!(
+///     r#"insert into "user" (username, email, password_hash) values ($1, $2, $3) returning user_id"#,
+///     username,
+///     email,
+///     password_hash
+/// )
+///     .fetch_one(&app_state.db)
+///     .await
+///     .on_constraint()?;
+/// ```
+pub trait ResultExt<T> {
+    /// If `self` contains a SQLx database constraint error with the given name,
+    /// transform the error.
+    ///
+    /// Otherwise, the result is passed through unchanged.
+    fn map_constraint_err(self) -> Result<T, Error>;
+}
+
+impl<T, E> ResultExt<T> for Result<T, E>
+where
+    E: Into<Error>,
+{
+    fn map_constraint_err(self) -> Result<T, Error> {
+        self.map_err(|e| match e.into() {
+            Error::DatabaseError(sqlx::Error::Database(dbe))
+                if dbe.code() == Some(Cow::Borrowed("2067")) =>
+            {
+                let (_, field) = dbe
+                    .message()
+                    .strip_prefix("UNIQUE constraint failed: ") // strip down to table.field
+                    .and_then(|s| s.split_once('.'))
+                    .unwrap_or_default(); // return an empty string if parsing fails
+
+                Error::UniqueConstraint(vec![(field.to_string(), dbe.message().to_string())])
+            }
+            e => e, // Pass the error through unchanged if not a sqlx error
+        })
+    }
 }
