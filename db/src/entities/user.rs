@@ -1,6 +1,9 @@
 use async_trait::async_trait;
+use axum_login::{AuthUser, AuthnBackend, UserId};
+use password_auth::verify_password;
 use serde::{Deserialize, Serialize};
 use sqlx::{Sqlite, SqlitePool, prelude::FromRow};
+use tokio::task;
 use validator::Validate;
 
 #[cfg(feature = "test-helpers")]
@@ -40,14 +43,6 @@ pub struct UserChangeset {
 }
 
 /// ------------------------------------------------------------------------
-/// Authentication specific structs.
-/// ------------------------------------------------------------------------
-#[derive(Clone)]
-pub struct LoggedInUser {
-    pub email: String,
-}
-
-/// ------------------------------------------------------------------------
 /// Manual impl Dummy to allow re-use of the password in the confirm_password field.
 /// ------------------------------------------------------------------------
 ///
@@ -70,20 +65,73 @@ impl Dummy<UserChangeset> for UserChangeset {
 }
 
 /// ------------------------------------------------------------------------
+/// Authentication specific implementations for axum_login.
+/// ------------------------------------------------------------------------
+impl AuthUser for User {
+    type Id = i64;
+
+    fn id(&self) -> Self::Id {
+        self.id
+    }
+
+    fn session_auth_hash(&self) -> &[u8] {
+        self.password_hash.as_bytes()
+        // We use the password hash as the auth
+        // hash--what this means
+        // is when the user changes their password the
+        // auth session becomes invalid.
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Backend {
+    db: SqlitePool,
+}
+
+impl Backend {
+    pub fn new(db: SqlitePool) -> Self {
+        Self { db }
+    }
+}
+
+// We use a type alias for convenience.
+//
+// Note that we've supplied our concrete backend here.
+pub type AuthSession = axum_login::AuthSession<Backend>;
+
+/// ------------------------------------------------------------------------
 /// Specific authentication related queries for the User entity.
 /// ------------------------------------------------------------------------
-impl User {
-    pub async fn get_by_email(email: &str, pool: &SqlitePool) -> Result<User, sqlx::Error> {
-        let user = sqlx::query_as!(
-            User,
-            r#"
-           select * from users where email = ?
+#[async_trait]
+impl AuthnBackend for Backend {
+    type User = User;
+    type Credentials = UserChangeset;
+    type Error = Error;
 
-"#,
-            email
-        )
-        .fetch_one(pool)
-        .await?;
+    async fn authenticate(
+        &self,
+        creds: Self::Credentials,
+    ) -> Result<Option<Self::User>, Self::Error> {
+        let user: Option<Self::User> = sqlx::query_as("select * from users where email = ? ")
+            .bind(creds.email)
+            .fetch_optional(&self.db)
+            .await?;
+
+        // Verifying the password is blocking and potentially slow, so we'll do so via
+        // `spawn_blocking`.
+        task::spawn_blocking(|| {
+            // We're using password-based authentication--this works by comparing our form
+            // input with an argon2 password hash.
+            Ok(user.filter(|user| verify_password(creds.password, &user.password_hash).is_ok()))
+        })
+        .await?
+    }
+
+    async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, Self::Error> {
+        let user = sqlx::query_as("select * from users where id = ?")
+            .bind(user_id)
+            .fetch_optional(&self.db)
+            .await?;
 
         Ok(user)
     }

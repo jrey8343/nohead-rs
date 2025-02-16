@@ -27,3 +27,6 @@ sqlx = { version = "0.8.3", default-features = false, features = [
 thiserror = "2.0.11"
 validator = { version = "0.20.0", features = ["derive"] }
 fake = { version = "3.1.0", features = ["derive"], optional = true }
+axum-login = "0.17.0"
+password-auth = "1.0.0"
+tokio = "1.43.0"
