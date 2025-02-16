@@ -2,6 +2,8 @@ use serde::Deserialize;
 use sqlx::Sqlite;
 use sqlx::prelude::FromRow;
 
+use crate::Error;
+
 #[derive(Clone, FromRow, Deserialize, Debug)]
 pub struct Session {
     pub session_token: Vec<u8>,
@@ -25,13 +27,13 @@ impl Session {
     pub async fn create(
         session: Session,
         executor: impl sqlx::Executor<'_, Database = Sqlite>,
-    ) -> Result<Session, sqlx::Error> {
+    ) -> Result<Session, Error> {
         let session = sqlx::query_as!(
             Session,
             r#"
-            INSERT INTO sessions (session_token, user_id)
-            VALUES (?, ?)
-            RETURNING *
+            insert into sessions (session_token, user_id)
+            values (?, ?)
+            returning *
 
 "#,
             session.session_token,
@@ -39,6 +41,25 @@ impl Session {
         )
         .fetch_one(executor)
         .await?;
+
+        Ok(session)
+    }
+
+    pub async fn get_by_token(
+        session_token: u8,
+        executor: impl sqlx::Executor<'_, Database = Sqlite>,
+    ) -> Result<Option<Session>, Error> {
+        let session = sqlx::query_as!(
+            Session,
+            r#"
+        select * from sessions where session_token = ?
+
+"#,
+            session_token
+        )
+        .fetch_optional(executor)
+        .await
+        .map_err(|_| Error::NoRecordFound)?;
 
         Ok(session)
     }

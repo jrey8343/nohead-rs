@@ -11,7 +11,7 @@ pub use validator::Validate;
 /// Custom migrator set to the correct path within the api testing environment
 pub static MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("../db/migrations");
 
-/// Entity definitions and related functions
+/// Entity definitions and related general queries.
 pub mod entities;
 
 /// Starts a new database transaction.

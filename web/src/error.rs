@@ -7,6 +7,11 @@ use tracing::error;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
+    /// Unauthenticated user
+    ///
+    /// Return a `401 Unauthorized` response on an unauthenticated user.
+    #[error("unauthenticated user")]
+    Unauthenticated,
     /// Could not render template
     ///
     /// Return `500 Internal Server Error` on a template rendering error.
@@ -27,6 +32,9 @@ pub enum Error {
 impl Error {
     fn status_code(&self) -> StatusCode {
         match self {
+            // Unauthenticated user
+            Error::Unauthenticated => StatusCode::UNAUTHORIZED,
+
             // Template rendering error
             Error::Render(_) => StatusCode::INTERNAL_SERVER_ERROR,
 
@@ -57,6 +65,10 @@ impl Error {
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
         match self {
+            Error::Unauthenticated => {
+                // TODO: Return a not authenticated view here.
+                return (self.status_code(), "unauthenticated".to_string()).into_response();
+            }
             Error::Render(ref err) => {
                 // TODO: Return a not found view here.
                 error!("an error occured while rendering a template: {:?}", err);

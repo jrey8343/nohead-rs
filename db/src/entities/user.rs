@@ -1,11 +1,13 @@
 use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
+use sqlx::{Sqlite, SqlitePool, prelude::FromRow};
+use validator::Validate;
+
+#[cfg(feature = "test-helpers")]
 use fake::{
     Dummy, Fake,
     faker::internet::{en::Password, en::SafeEmail},
 };
-use serde::{Deserialize, Serialize};
-use sqlx::{Sqlite, SqlitePool, prelude::FromRow};
-use validator::Validate;
 
 use super::Entity;
 use crate::{Error, ResultExt, transaction};
@@ -35,6 +37,14 @@ pub struct UserChangeset {
     pub password: String,
     #[validate(must_match(other = "password", message = "passwords do not match"))]
     pub confirm_password: String,
+}
+
+/// ------------------------------------------------------------------------
+/// Authentication specific structs.
+/// ------------------------------------------------------------------------
+#[derive(Clone)]
+pub struct LoggedInUser {
+    pub email: String,
 }
 
 /// ------------------------------------------------------------------------
