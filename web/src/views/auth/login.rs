@@ -1,6 +1,5 @@
 use axum::response::{IntoResponse, Response};
 use rinja::Template;
-use serde::Deserialize;
 
 use crate::middlewares::flash::{FlashMessage, IncomingFlashes};
 

@@ -2,7 +2,6 @@ use axum::Router;
 use axum::extract::State;
 use axum::routing::get;
 use axum::{Form, response::Redirect};
-use nohead_rs_db::entities::Entity;
 use nohead_rs_db::entities::user::{RegisterUser, User};
 
 use crate::error::Error;

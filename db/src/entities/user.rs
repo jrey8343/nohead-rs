@@ -142,63 +142,8 @@ impl User {
 
         Ok(user)
     }
-}
 
-fn generate_password_hash(password: &str) -> Result<String, password_hash::Error> {
-    let salt = SaltString::generate(&mut OsRng);
-    let argon2 = Argon2::default();
-
-    let hashed_password = argon2
-        .hash_password(password.as_bytes(), &salt)?
-        .to_string();
-
-    Ok(hashed_password)
-}
-
-/// ------------------------------------------------------------------------
-/// Generic CRUD related queries for the User entity.
-/// ------------------------------------------------------------------------
-#[async_trait]
-impl Entity for User {
-    type Id = i64;
-
-    type Record<'a> = User;
-
-    type Changeset = RegisterUser;
-    async fn load_all<'a>(
-        executor: impl sqlx::Executor<'_, Database = Sqlite>,
-    ) -> Result<Vec<Self::Record<'a>>, Error> {
-        let users = sqlx::query_as!(
-            User,
-            r#"select id, email, password_hash from users
-
-"#
-        )
-        .fetch_all(executor)
-        .await?;
-
-        Ok(users)
-    }
-
-    async fn load<'a>(
-        id: i64,
-        executor: impl sqlx::Executor<'_, Database = Sqlite>,
-    ) -> Result<User, Error> {
-        let user = sqlx::query_as!(
-            User,
-            r#"select id, email, password_hash from users where id = ?
-
-"#,
-            id
-        )
-        .fetch_optional(executor)
-        .await?
-        .ok_or(Error::NoRecordFound)?;
-
-        Ok(user)
-    }
-
-    async fn create<'a>(
+    pub async fn create(
         user: RegisterUser,
         executor: impl sqlx::Executor<'_, Database = Sqlite>,
     ) -> Result<User, Error> {
@@ -223,79 +168,22 @@ impl Entity for User {
 
         Ok(user)
     }
+}
 
-    async fn create_batch(
-        users: Vec<RegisterUser>,
-        db_pool: &SqlitePool,
-    ) -> Result<Vec<User>, Error> {
-        let mut tx = transaction(db_pool).await?;
+/// ------------------------------------------------------------------------
+/// Helper function to generate a password hash using argon2.
+/// ------------------------------------------------------------------------
+/// # Returns
+///
+/// A hashed password string.
+/// ------------------------------------------------------------------------
+fn generate_password_hash(password: &str) -> Result<String, password_hash::Error> {
+    let salt = SaltString::generate(&mut OsRng);
+    let argon2 = Argon2::default();
 
-        let mut results: Vec<Self::Record<'_>> = vec![];
+    let hashed_password = argon2
+        .hash_password(password.as_bytes(), &salt)?
+        .to_string();
 
-        for user in users {
-            user.validate()?;
-
-            let result = Self::create(user, &mut *tx).await?;
-            results.push(result);
-        }
-
-        tx.commit().await?;
-
-        Ok(results)
-    }
-
-    async fn update<'a>(
-        id: i64,
-        user: RegisterUser,
-        executor: impl sqlx::Executor<'_, Database = Sqlite>,
-    ) -> Result<User, Error> {
-        user.validate()?;
-
-        todo!("work out how to update email and password_hash");
-        let user = sqlx::query_as!(
-            User,
-            r#"update users set email = (?) where id = (?) returning id, email, password_hash
-
-"#,
-            user.email,
-            id
-        )
-        .fetch_optional(executor)
-        .await?
-        .ok_or(Error::NoRecordFound)?;
-
-        Ok(user)
-    }
-
-    async fn delete<'a>(
-        id: i64,
-        executor: impl sqlx::Executor<'_, Database = Sqlite>,
-    ) -> Result<User, Error> {
-        let user = sqlx::query_as!(
-            User,
-            r#"delete from users where id = ? returning id, email, password_hash
-
-"#,
-            id
-        )
-        .fetch_optional(executor)
-        .await?
-        .ok_or(Error::NoRecordFound)?;
-
-        Ok(user)
-    }
-    async fn delete_batch(ids: Vec<Self::Id>, db_pool: &SqlitePool) -> Result<Vec<User>, Error> {
-        let mut tx = transaction(db_pool).await?;
-
-        let mut results: Vec<Self::Record<'_>> = vec![];
-
-        for id in ids {
-            let result = Self::delete(id, &mut *tx).await?;
-            results.push(result);
-        }
-
-        tx.commit().await?;
-
-        Ok(results)
-    }
+    Ok(hashed_password)
 }

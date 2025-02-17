@@ -1,16 +1,16 @@
-use std::path::Path;
+use std::{path::Path, time};
 
 use axum_login::{AuthManagerLayerBuilder, login_required};
 use nohead_rs_config::Environment;
 use tower::ServiceBuilder;
-use tower_http::{services::ServeDir, trace::TraceLayer};
+use tower_http::{services::ServeDir, timeout::TimeoutLayer, trace::TraceLayer};
 use tower_sessions::{
     ExpiredDeletion, Expiry, SessionManagerLayer,
     cookie::{Key, time::Duration},
     session_store,
 };
 use tower_sessions_sqlx_store::SqliteStore;
-use tracing::debug;
+use tracing::{debug, info};
 
 use axum::{Router, routing::get, serve};
 use color_eyre::Result;
@@ -34,7 +34,7 @@ use crate::{
 pub struct App {
     pub router: Router,
     pub app_state: AppState,
-    deletion_task: JoinHandle<Result<(), session_store::Error>>,
+    pub deletion_task: JoinHandle<Result<(), session_store::Error>>,
 }
 
 impl App {
@@ -42,7 +42,7 @@ impl App {
     // this is useful for testing purposes
     // where axum_test will run a
     // random port
-    async fn build(app_state: AppState) -> Result<Self> {
+    fn build(app_state: AppState) -> Result<Self> {
         let session_store = SqliteStore::new(app_state.db_pool.clone())
             .with_table_name("sessions")
             .expect("unable to connect to session store");
@@ -70,7 +70,6 @@ impl App {
         let backend = Backend::new(app_state.db_pool.clone());
         let auth_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
 
-        // let router = init_router(&app_state);
         let static_assets = ServeDir::new(Path::new(env!("CARGO_MANIFEST_DIR")).join("static"));
 
         let router = Router::new()
@@ -85,8 +84,13 @@ impl App {
             .merge(TodoController::router())
             .nest_service("/static", static_assets)
             .with_state(app_state.clone())
-            .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
-            .layer(auth_layer);
+            .layer(ServiceBuilder::new().layer((
+                TraceLayer::new_for_http(),
+                // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
+                // requests don't hang forever.
+                TimeoutLayer::new(time::Duration::from_secs(10)),
+                auth_layer,
+            )));
 
         Ok(Self {
             router,
@@ -110,7 +114,15 @@ impl App {
             .with_graceful_shutdown(shutdown_signal(app.deletion_task.abort_handle()))
             .await?;
 
-        app.deletion_task.await??;
+        match app.deletion_task.await {
+            Ok(_) => (),
+            Err(err) if err.is_cancelled() => {
+                tracing::debug!("session deletion tasks cleaned up.")
+            }
+            Err(err) => panic!("deletion task failed to cleanup: {:?}", err),
+        }
+
+        info!("server shutdown successfully");
 
         Ok(())
     }
@@ -127,7 +139,7 @@ impl App {
 
         Tracing::init(&app_state.config.tracing);
 
-        let app = App::build(app_state).await?;
+        let app = App::build(app_state)?;
 
         App::serve(app).await?;
 

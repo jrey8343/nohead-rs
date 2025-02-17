@@ -1,13 +1,19 @@
 use async_trait::async_trait;
-use axum_login::{AuthnBackend, UserId};
+use axum_login::{AuthManagerLayerBuilder, AuthnBackend, UserId};
 use nohead_rs_db::{
     DbPool,
     entities::user::{User, UserCredentials},
 };
 use password_auth::verify_password;
-use tokio::task;
+use tokio::task::{self, JoinHandle};
+use tower_sessions::{
+    ExpiredDeletion, Expiry, SessionManagerLayer,
+    cookie::{Key, time::Duration},
+    session_store,
+};
+use tower_sessions_sqlx_store::SqliteStore;
 
-use crate::error::Error;
+use crate::{error::Error, state::AppState};
 
 // We use a type alias for convenience.
 //
