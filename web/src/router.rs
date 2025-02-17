@@ -1,4 +1,4 @@
-use std::{path::Path, sync::Arc};
+use std::path::Path;
 
 use axum::Router;
 use tower_http::services::ServeDir;

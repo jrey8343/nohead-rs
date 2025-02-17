@@ -56,6 +56,11 @@ impl Error {
                 StatusCode::INTERNAL_SERVER_ERROR
             }
 
+            // Password hashing error
+            Error::Database(nohead_rs_db::Error::PasswordHashError(_)) => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
+
             // Unexpected error
             Error::Unexpected(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
@@ -92,6 +97,10 @@ impl IntoResponse for Error {
                     err
                 );
                 return (self.status_code(), err.to_string()).into_response();
+            }
+            Error::Database(nohead_rs_db::Error::PasswordHashError(ref err)) => {
+                // TODO: Return a password hash error view here.
+                error!("an error occured while hashing a password: {:?}", err);
             }
             Error::Unexpected(ref err) => {
                 error!("an internal server error occured: {:?}", err);

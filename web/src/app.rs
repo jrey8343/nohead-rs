@@ -1,8 +1,7 @@
 use std::path::Path;
 
-use axum_login::AuthManagerLayerBuilder;
+use axum_login::{AuthManagerLayerBuilder, login_required};
 use nohead_rs_config::Environment;
-use nohead_rs_db::entities::user::Backend;
 use tower::ServiceBuilder;
 use tower_http::{services::ServeDir, trace::TraceLayer};
 use tower_sessions::{
@@ -13,20 +12,26 @@ use tower_sessions::{
 use tower_sessions_sqlx_store::SqliteStore;
 use tracing::debug;
 
-use axum::{Router, serve};
+use axum::{Router, routing::get, serve};
 use color_eyre::Result;
 use tokio::{
     signal,
-    task::{AbortHandle, JoinError, JoinHandle},
+    task::{AbortHandle, JoinHandle},
 };
 
 use crate::{
-    controllers::{Controller, home::HomeController, todos::TodoController},
+    controllers::{
+        Controller,
+        auth::{login::LoginController, register::RegisterController},
+        home::HomeController,
+        todos::TodoController,
+    },
+    middlewares::auth::Backend,
     state::AppState,
     tracing::Tracing,
 };
 
-struct App {
+pub struct App {
     pub router: Router,
     pub app_state: AppState,
     deletion_task: JoinHandle<Result<(), session_store::Error>>,
@@ -38,11 +43,11 @@ impl App {
     // where axum_test will run a
     // random port
     async fn build(app_state: AppState) -> Result<Self> {
-        // Session layer.
-        //
-        // This uses `tower-sessions` to establish a layer that will provide the session
-        // as a request extension.
-        let session_store = SqliteStore::new(app_state.db_pool.clone());
+        let session_store = SqliteStore::new(app_state.db_pool.clone())
+            .with_table_name("sessions")
+            .expect("unable to connect to session store");
+        // Panic here as this is a fatal error
+        // at startup.
 
         let deletion_task = tokio::task::spawn(
             session_store
@@ -54,7 +59,7 @@ impl App {
         let key = Key::generate();
 
         let session_layer = SessionManagerLayer::new(session_store)
-            .with_secure(false)
+            .with_secure(true)
             .with_expiry(Expiry::OnInactivity(Duration::days(1)))
             .with_signed(key);
 
@@ -69,7 +74,14 @@ impl App {
         let static_assets = ServeDir::new(Path::new(env!("CARGO_MANIFEST_DIR")).join("static"));
 
         let router = Router::new()
+            .route(
+                "/protected",
+                get(|| async { "you gotta be logged in to see me!" }),
+            )
+            .route_layer(login_required!(Backend, login_url = "/auth/login"))
             .merge(HomeController::router())
+            .merge(LoginController::router())
+            .merge(RegisterController::router())
             .merge(TodoController::router())
             .nest_service("/static", static_assets)
             .with_state(app_state.clone())
@@ -108,7 +120,7 @@ impl App {
     // You can optionally hook in to
     // add graceful shutdown
     // processes.
-    async fn boot(env: Environment) -> Result<()> {
+    pub async fn boot(env: Environment) -> Result<()> {
         color_eyre::install()?;
 
         let app_state = AppState::build(env).await?;

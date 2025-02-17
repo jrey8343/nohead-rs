@@ -32,11 +32,12 @@ serde_json = "1.0.138"
 axum-login = "0.17.0"
 tower-sessions = { version = "0.14.0", features = ["signed"] }
 tower-sessions-sqlx-store = { version = "0.15.0", features = ["sqlite"] }
+password-auth = "1.0.0"
 
 [dev-dependencies]
 nohead-rs_db = { path = "../db", features = ['test-helpers'] }
 axum-test = "17.2.0"
-fake = { version = "3.1.0", features = ["derive"] }
+fake = { version = "4.0.0", features = ["derive"] }
 http-body-util = "0.1.2"
 sqlx = { version = "0.8.3", default-features = false, features = [
   "sqlite",

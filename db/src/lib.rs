@@ -62,8 +62,9 @@ pub enum Error {
     #[error("validation failed")]
     /// An invalid changeset was passed to a writing operation such as creating or updating a record.
     ValidationError(#[from] validator::ValidationErrors),
-    #[error("task join error while running concurrent task")]
-    TaskError(#[from] tokio::task::JoinError),
+    /// An error occurred while hashing a password.
+    #[error("password hashing failed")]
+    PasswordHashError(#[from] argon2::password_hash::Error),
 }
 
 /// ------------------------------------------------------------------------------------------
