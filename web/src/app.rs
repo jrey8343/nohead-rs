@@ -42,7 +42,9 @@ impl App {
     // this is useful for testing purposes
     // where axum_test will run a
     // random port
-    fn build(app_state: AppState) -> Result<Self> {
+    // TODO: #1: Extract the session store setup into a separate function
+    //       #2: Extract the router setup into a separate function
+    pub fn build(app_state: AppState) -> Result<Self> {
         let session_store = SqliteStore::new(app_state.db_pool.clone())
             .with_table_name("sessions")
             .expect("unable to connect to session store");
@@ -114,15 +116,7 @@ impl App {
             .with_graceful_shutdown(shutdown_signal(app.deletion_task.abort_handle()))
             .await?;
 
-        match app.deletion_task.await {
-            Ok(_) => (),
-            Err(err) if err.is_cancelled() => {
-                tracing::debug!("session deletion tasks cleaned up.")
-            }
-            Err(err) => panic!("deletion task failed to cleanup: {:?}", err),
-        }
-
-        info!("server shutdown successfully");
+        App::shutdown_with_cleanup(app.deletion_task).await?;
 
         Ok(())
     }
@@ -142,6 +136,22 @@ impl App {
         let app = App::build(app_state)?;
 
         App::serve(app).await?;
+
+        Ok(())
+    }
+
+    async fn shutdown_with_cleanup(
+        deletion_task: JoinHandle<Result<(), session_store::Error>>,
+    ) -> Result<()> {
+        match deletion_task.await {
+            Ok(_) => (), // nothing to cleanup
+            Err(err) if err.is_cancelled() => {
+                tracing::debug!("session deletion tasks cleaned up.")
+            }
+            Err(err) => panic!("session deletion task failed to cleanup: {:?}", err),
+        }
+
+        info!("server shutdown successfully");
 
         Ok(())
     }

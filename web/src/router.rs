@@ -1,9 +1,9 @@
-use std::path::Path;
+use std::{path::Path, time::Duration};
 
-use axum::{Router, extract::Request, routing::get};
+use axum::{Router, routing::get};
 use axum_login::login_required;
-use tower::{Layer, Service, ServiceBuilder};
-use tower_http::{services::ServeDir, trace::TraceLayer};
+use tower::ServiceBuilder;
+use tower_http::{services::ServeDir, timeout::TimeoutLayer, trace::TraceLayer};
 
 use crate::{
     controllers::{
@@ -16,11 +16,9 @@ use crate::{
     state::AppState,
 };
 
-// TODO: Use newtype pattern to wrap the AppState
-// then we can initialize and add other methods
-
 pub fn init_router(app_state: &AppState) -> Router {
     let static_assets = ServeDir::new(Path::new(env!("CARGO_MANIFEST_DIR")).join("static"));
+
     Router::new()
         .route(
             "/protected",
@@ -33,8 +31,11 @@ pub fn init_router(app_state: &AppState) -> Router {
         .merge(TodoController::router())
         .nest_service("/static", static_assets)
         .with_state(app_state.clone())
-}
-
-pub fn after_routes(router: Router) -> Router {
-    router.layer(TraceLayer::new_for_http())
+        .layer(ServiceBuilder::new().layer((
+            TraceLayer::new_for_http(),
+            // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
+            // requests don't hang forever.
+            TimeoutLayer::new(Duration::from_secs(10)),
+            // TODO: Add auth_layer
+        )))
 }
