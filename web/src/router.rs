@@ -1,9 +1,10 @@
 use std::{path::Path, time::Duration};
 
 use axum::{Router, routing::get};
-use axum_login::login_required;
+use axum_login::{AuthManagerLayer, login_required};
 use tower::ServiceBuilder;
 use tower_http::{services::ServeDir, timeout::TimeoutLayer, trace::TraceLayer};
+use tower_sessions_sqlx_store::SqliteStore;
 
 use crate::{
     controllers::{
@@ -12,11 +13,14 @@ use crate::{
         home::HomeController,
         todos::TodoController,
     },
-    middlewares::auth::Backend,
+    middlewares::auth::AuthBackend,
     state::AppState,
 };
 
-pub fn init_router(app_state: &AppState) -> Router {
+pub fn init_router(
+    app_state: &AppState,
+    auth_layer: AuthManagerLayer<AuthBackend, SqliteStore, tower_sessions::service::SignedCookie>,
+) -> Router {
     let static_assets = ServeDir::new(Path::new(env!("CARGO_MANIFEST_DIR")).join("static"));
 
     Router::new()
@@ -24,7 +28,7 @@ pub fn init_router(app_state: &AppState) -> Router {
             "/protected",
             get(|| async { "you gotta be logged in to see me!" }),
         )
-        .route_layer(login_required!(Backend, login_url = "/auth/login"))
+        .route_layer(login_required!(AuthBackend, login_url = "/auth/login"))
         .merge(HomeController::router())
         .merge(LoginController::router())
         .merge(RegisterController::router())
@@ -36,6 +40,6 @@ pub fn init_router(app_state: &AppState) -> Router {
             // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
             // requests don't hang forever.
             TimeoutLayer::new(Duration::from_secs(10)),
-            // TODO: Add auth_layer
+            auth_layer, // TODO: Add auth_layer
         )))
 }

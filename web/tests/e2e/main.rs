@@ -36,9 +36,7 @@ where
         lazy_tracing(&app_state);
     }
 
-    let app = App::build(app_state)
-        .await
-        .expect("failed to boot test app");
+    let app = App::build(app_state).expect("failed to boot test app");
 
     let config = TestServerBuilder::new()
         .transport(axum_test::Transport::HttpRandomPort)
@@ -66,9 +64,7 @@ where
         lazy_tracing(&app_state);
     }
 
-    let app = App::build(app_state)
-        .await
-        .expect("failed to boot test app");
+    let app = App::build(app_state).expect("failed to boot test app");
 
     let config = TestServerBuilder::new()
         .transport(axum_test::Transport::HttpRandomPort)

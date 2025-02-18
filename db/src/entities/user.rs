@@ -2,10 +2,9 @@ use argon2::{
     Argon2, PasswordHasher,
     password_hash::{self, SaltString, rand_core::OsRng},
 };
-use async_trait::async_trait;
 use axum_login::AuthUser;
 use serde::{Deserialize, Serialize};
-use sqlx::{Sqlite, SqlitePool, prelude::FromRow};
+use sqlx::{Sqlite, prelude::FromRow};
 use validator::Validate;
 
 #[cfg(feature = "test-helpers")]
@@ -14,8 +13,7 @@ use fake::{
     faker::internet::{en::Password, en::SafeEmail},
 };
 
-use super::Entity;
-use crate::{Error, ResultExt, transaction};
+use crate::{Error, ResultExt};
 
 #[derive(Clone, FromRow, Deserialize)]
 pub struct User {

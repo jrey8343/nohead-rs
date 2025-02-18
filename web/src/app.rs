@@ -1,18 +1,8 @@
-use std::{path::Path, time};
-
-use axum_login::{AuthManagerLayerBuilder, login_required};
 use nohead_rs_config::Environment;
-use tower::ServiceBuilder;
-use tower_http::{services::ServeDir, timeout::TimeoutLayer, trace::TraceLayer};
-use tower_sessions::{
-    ExpiredDeletion, Expiry, SessionManagerLayer,
-    cookie::{Key, time::Duration},
-    session_store,
-};
-use tower_sessions_sqlx_store::SqliteStore;
+use tower_sessions::session_store;
 use tracing::{debug, info};
 
-use axum::{Router, routing::get, serve};
+use axum::{Router, serve};
 use color_eyre::Result;
 use tokio::{
     signal,
@@ -20,15 +10,7 @@ use tokio::{
 };
 
 use crate::{
-    controllers::{
-        Controller,
-        auth::{login::LoginController, register::RegisterController},
-        home::HomeController,
-        todos::TodoController,
-    },
-    middlewares::auth::Backend,
-    state::AppState,
-    tracing::Tracing,
+    middlewares::auth::AuthSessionManager, router::init_router, state::AppState, tracing::Tracing,
 };
 
 pub struct App {
@@ -42,57 +24,13 @@ impl App {
     // this is useful for testing purposes
     // where axum_test will run a
     // random port
-    // TODO: #1: Extract the session store setup into a separate function
-    //       #2: Extract the router setup into a separate function
     pub fn build(app_state: AppState) -> Result<Self> {
-        let session_store = SqliteStore::new(app_state.db_pool.clone())
-            .with_table_name("sessions")
-            .expect("unable to connect to session store");
-        // Panic here as this is a fatal error
-        // at startup.
+        let AuthSessionManager {
+            deletion_task,
+            auth_layer,
+        } = AuthSessionManager::new(&app_state);
 
-        let deletion_task = tokio::task::spawn(
-            session_store
-                .clone()
-                .continuously_delete_expired(tokio::time::Duration::from_secs(60)),
-        );
-
-        // Generate a cryptographic key to sign the session cookie.
-        let key = Key::generate();
-
-        let session_layer = SessionManagerLayer::new(session_store)
-            .with_secure(true)
-            .with_expiry(Expiry::OnInactivity(Duration::days(1)))
-            .with_signed(key);
-
-        // Auth service.
-        //
-        // This combines the session layer with our backend to establish the auth
-        // service which will provide the auth session as a request extension.
-        let backend = Backend::new(app_state.db_pool.clone());
-        let auth_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
-
-        let static_assets = ServeDir::new(Path::new(env!("CARGO_MANIFEST_DIR")).join("static"));
-
-        let router = Router::new()
-            .route(
-                "/protected",
-                get(|| async { "you gotta be logged in to see me!" }),
-            )
-            .route_layer(login_required!(Backend, login_url = "/auth/login"))
-            .merge(HomeController::router())
-            .merge(LoginController::router())
-            .merge(RegisterController::router())
-            .merge(TodoController::router())
-            .nest_service("/static", static_assets)
-            .with_state(app_state.clone())
-            .layer(ServiceBuilder::new().layer((
-                TraceLayer::new_for_http(),
-                // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
-                // requests don't hang forever.
-                TimeoutLayer::new(time::Duration::from_secs(10)),
-                auth_layer,
-            )));
+        let router = init_router(&app_state, auth_layer);
 
         Ok(Self {
             router,

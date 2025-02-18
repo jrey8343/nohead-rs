@@ -84,7 +84,7 @@ impl IntoResponse for Error {
 
                 return (self.status_code(), "no record found".to_string()).into_response();
             }
-            Error::Database(nohead_rs_db::Error::UniqueConstraint(ref err)) => {
+            Error::Database(nohead_rs_db::Error::UniqueConstraint(ref _err)) => {
                 // TODO: Return a unique constaint error view here.
             }
             Error::Database(nohead_rs_db::Error::ValidationError(ref err)) => {
