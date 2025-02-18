@@ -3,7 +3,8 @@ use argon2::{
     password_hash::{self, SaltString, rand_core::OsRng},
 };
 use axum_login::AuthUser;
-use serde::{Deserialize, Serialize};
+use fake::Faker;
+use serde::Deserialize;
 use sqlx::{Sqlite, prelude::FromRow};
 use validator::Validate;
 
@@ -38,10 +39,10 @@ impl std::fmt::Debug for User {
 /// Changesets can also be used to generate fake data for tests when the `test-helpers` feature is enabled:
 ///
 /// ```
-/// let user_changeset: UserChangeset = Faker.fake();
+/// let user: RegisterUser = Faker.fake();
 /// ```
 #[derive(Deserialize, Validate, Clone, Debug)]
-#[cfg_attr(feature = "test-helpers", derive(Serialize))]
+#[cfg_attr(feature = "test-helpers", derive(serde::Serialize))]
 pub struct RegisterUser {
     #[validate(email(message = "Must be a valid email address"))]
     pub email: String,
@@ -50,23 +51,6 @@ pub struct RegisterUser {
     #[validate(must_match(other = "password", message = "passwords do not match"))]
     pub confirm_password: String,
 }
-/// RegisterUser is a changeset for creating a new user.
-///
-/// Changesets can also be used to generate fake data for tests when the `test-helpers` feature is enabled:
-///
-/// ```
-/// let user_changeset: UserChangeset = Faker.fake();
-/// ```
-#[derive(Deserialize, Validate, Clone, Debug)]
-#[cfg_attr(feature = "test-helpers", derive(Serialize))]
-pub struct UserCredentials {
-    #[validate(email(message = "Must be a valid email address"))]
-    pub email: String,
-    #[validate(length(min = 8, message = "password must be at least 8 characters"))]
-    pub password: String,
-    pub next: Option<String>,
-}
-
 /// ------------------------------------------------------------------------
 /// Manual impl Dummy to allow re-use of the password in the confirm_password field.
 /// ------------------------------------------------------------------------
@@ -78,8 +62,8 @@ pub struct UserCredentials {
 /// A dummy UserChangeset with a random email, password and confirm_password.
 /// ------------------------------------------------------------------------
 #[cfg(feature = "test-helpers")]
-impl Dummy<RegisterUser> for RegisterUser {
-    fn dummy_with_rng<R: fake::Rng + ?Sized>(_: &RegisterUser, rng: &mut R) -> Self {
+impl Dummy<Faker> for RegisterUser {
+    fn dummy_with_rng<R: fake::Rng + ?Sized>(_: &Faker, rng: &mut R) -> Self {
         let password: String = Password(8..16).fake_with_rng(rng);
         Self {
             email: SafeEmail().fake_with_rng(rng),
@@ -87,6 +71,23 @@ impl Dummy<RegisterUser> for RegisterUser {
             confirm_password: password,
         }
     }
+}
+
+/// UserCredentials is a changeset for logging in a user.
+///
+/// Changesets can also be used to generate fake data for tests when the `test-helpers` feature is enabled:
+///
+/// ```
+/// let creds: UserCredentials = Faker.fake();
+/// ```
+#[derive(Deserialize, Validate, Clone, Debug)]
+#[cfg_attr(feature = "test-helpers", derive(serde::Serialize))]
+pub struct UserCredentials {
+    #[validate(email(message = "Must be a valid email address"))]
+    pub email: String,
+    #[validate(length(min = 8, message = "password must be at least 8 characters"))]
+    pub password: String,
+    pub next: Option<String>,
 }
 
 /// ------------------------------------------------------------------------

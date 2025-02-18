@@ -1,3 +1,4 @@
+mod login_test;
 mod todos_test;
 
 use std::sync::OnceLock;
