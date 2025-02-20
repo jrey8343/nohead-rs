@@ -25,8 +25,8 @@ async fn login_creates_session_on_success(pool: DbPool) {
             .await;
 
         let session_cookie = response.cookie("id").value().to_string();
-
-        // FIX: Unable to lookup session in the database as it is hashed
+        // Cookie is signed so the string is available after the = sign
+        let session_cookie = session_cookie.split('=').collect::<Vec<&str>>()[1];
 
         let session = sqlx::query_as!(
             Session,

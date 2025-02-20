@@ -3,14 +3,13 @@ use argon2::{
     password_hash::{self, SaltString, rand_core::OsRng},
 };
 use axum_login::AuthUser;
-use fake::Faker;
 use serde::Deserialize;
 use sqlx::{Sqlite, prelude::FromRow};
 use validator::Validate;
 
 #[cfg(feature = "test-helpers")]
 use fake::{
-    Dummy, Fake,
+    Dummy, Fake, Faker,
     faker::internet::{en::Password, en::SafeEmail},
 };
 
