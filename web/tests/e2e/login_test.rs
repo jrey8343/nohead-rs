@@ -25,7 +25,7 @@ async fn login_creates_session_on_success(pool: DbPool) {
             .await;
 
         let session_cookie = response.cookie("id").value().to_string();
-        // Cookie is signed so the string is available after the = sign
+        // Cookie is signed so the actual session id can be extracted after the '=' symbol
         let session_cookie = session_cookie.split('=').collect::<Vec<&str>>()[1];
 
         let session = sqlx::query_as!(
@@ -45,46 +45,92 @@ async fn login_creates_session_on_success(pool: DbPool) {
     })
     .await
 }
-//
-// #[sqlx::test]
-// async fn login_throws_400_bad_request_for_invalid_password(pool: SqlitePool) {
-//     test_request_with_db::<_, _>(pool.clone(), |request| async move {
-//         let mut user = RegisterUserForm {
-//             username: "fuddyduddy".to_string(),
-//             password: "assAssASSword".to_string(),
-//             confirm_password: "assAssASSword".to_string(),
-//         };
-//
-//         user.password = generate_password_hash(&user.password).unwrap();
-//
-//         User::create(user.clone(), &pool)
-//             .await
-//             .expect("failed to create user in test db");
-//
-//         let response = request
-//             .post("/auth/login")
-//             .form(&LoginUserForm {
-//                 username: user.username.clone(),
-//                 password: "wrongPa$$word".into(),
-//             })
-//             .await;
-//
-//         response.assert_status_bad_request();
-//     })
-//     .await
-// }
-// #[tokio::test]
-// async fn login_throws_404_not_found_if_user_does_not_exist() {
-//     test_request::<_, _>(|request| async move {
-//         let response = request
-//             .post("/auth/login")
-//             .form(&LoginUserForm {
-//                 username: "Idonotexisssssst".into(),
-//                 password: "a$$$$$worrrrrdd".into(),
-//             })
-//             .await;
-//
-//         response.assert_status_not_found();
-//     })
-//     .await
-// }
+#[sqlx::test(migrator = "MIGRATOR")]
+async fn login_does_not_create_session_on_invalid_credentials(pool: DbPool) {
+    test_request_with_db::<_, _>(pool.clone(), |request| async move {
+        let user: RegisterUser = Faker.fake();
+
+        // 😉User is not created in the database
+
+        let response = request
+            .post("/auth/login")
+            .form(&UserCredentials {
+                email: user.email,
+                password: user.password,
+                next: None,
+            })
+            .await;
+
+        let session_cookie = response.maybe_cookie("id");
+
+        assert!(
+            session_cookie.is_none(),
+            "oops a session cookie was created for a non existent user"
+        );
+    })
+    .await
+}
+
+#[sqlx::test(migrator = "MIGRATOR")]
+async fn login_redirects_to_login_page_for_invalid_password(pool: DbPool) {
+    test_request_with_db::<_, _>(pool.clone(), |request| async move {
+        let user: RegisterUser = Faker.fake();
+
+        User::create(user.clone(), &pool)
+            .await
+            .expect("failed to create user in test db");
+
+        let response = request
+            .post("/auth/login")
+            .form(&UserCredentials {
+                email: user.email.clone(),
+                password: "wrongPa$$word".into(),
+                next: None,
+            })
+            .await;
+
+        response.assert_status_see_other();
+
+        let location = response
+            .headers()
+            .get("location")
+            .expect("unable to get redirect location header from response")
+            .to_str()
+            .unwrap();
+
+        assert_eq!(location, "/auth/login", "redirected to the wrong page");
+    })
+    .await
+}
+
+#[sqlx::test(migrator = "MIGRATOR")]
+async fn login_redirects_to_login_page_for_invalid_user(pool: DbPool) {
+    test_request_with_db::<_, _>(pool.clone(), |request| async move {
+        let user: RegisterUser = Faker.fake();
+
+        User::create(user.clone(), &pool)
+            .await
+            .expect("failed to create user in test db");
+
+        let response = request
+            .post("/auth/login")
+            .form(&UserCredentials {
+                email: "thisisnotauser@fake.com".into(),
+                password: user.password,
+                next: None,
+            })
+            .await;
+
+        response.assert_status_see_other();
+
+        let location = response
+            .headers()
+            .get("location")
+            .expect("unable to get redirect location header from response")
+            .to_str()
+            .unwrap();
+
+        assert_eq!(location, "/auth/login", "redirected to the wrong page");
+    })
+    .await
+}

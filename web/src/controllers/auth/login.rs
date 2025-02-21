@@ -43,7 +43,7 @@ impl LoginController {
         let user = match auth_session.authenticate(creds.clone()).await {
             Ok(Some(user)) => user,
             Ok(None) => {
-                let mut login_url = "/login".to_string();
+                let mut login_url = "/auth/login".to_string();
                 if let Some(next) = creds.next {
                     login_url = format!("{}?next={}", login_url, next);
                 };

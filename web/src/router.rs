@@ -40,6 +40,6 @@ pub fn init_router(
             // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
             // requests don't hang forever.
             TimeoutLayer::new(Duration::from_secs(10)),
-            auth_layer, // TODO: Add auth_layer
+            auth_layer,
         )))
 }
