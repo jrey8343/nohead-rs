@@ -28,11 +28,11 @@ pub fn init_router(
             "/protected",
             get(|| async { "you gotta be logged in to see me!" }),
         )
+        .merge(TodoController::router())
         .route_layer(login_required!(AuthBackend, login_url = "/auth/login"))
         .merge(HomeController::router())
         .merge(LoginController::router())
         .merge(RegisterController::router())
-        .merge(TodoController::router())
         .nest_service("/static", static_assets)
         .with_state(app_state.clone())
         .layer(ServiceBuilder::new().layer((
