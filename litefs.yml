@@ -1,0 +1,29 @@
+# The fuse section describes settings for the FUSE file system. This file system
+# is used as a thin layer between the SQLite client in your application and the
+fuse:
+  dir: "${LITEFS_DIR}"
+
+data:
+  dir: "/data/litefs/shared"
+
+  # Remember to run 'fly consul attach' before deploying this app for the first time
+
+lease:
+  type: "consul"
+  candidate: ${FLY_REGION == 'syd'}
+  advertise-url: "http://${FLY_ALLOC_ID}.vm.${FLY_APP_NAME}.internal:20202"
+
+  consul:
+    url: "${FLY_CONSUL_URL}"
+    key: "litefs/shared/${FLY_APP_NAME}"
+
+proxy:
+  addr: ":${PORT}"
+  target: "localhost:${INTERNAL_PORT}"
+  db: "${DATABASE_FILENAME}"
+
+exec:
+  - cmd: "/usr/local/bin/create_or_migrate_db.sh"
+    if-candidate: true
+
+  - cmd: "./nohead-rs"

@@ -1,12 +1,8 @@
 {% extends "base.html" %}
-
 {% block title %}Show{% endblock %}
-
 {% block content %}
     <span id="errors"></span>
-    {% for flash in flashes %}
-    <p>{{flash.message}}</p>
-    {% endfor %}
+    {% for flash in flashes %}<p>{{ flash.message }}</p>{% endfor %}
     <h1>Todo: {{ todo.id }}</h1>
     {% block update %}
         {% include "todos/update.html" %}

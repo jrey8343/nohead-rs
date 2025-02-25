@@ -28,14 +28,10 @@ pub struct Show {
 impl IntoResponse for TodoView {
     fn into_response(self) -> Response {
         match self {
-            TodoView::Index(todos, flashes) => html(Index {
-                todos,
-                flashes: flashes.flashes,
-            }),
-            TodoView::Show(todo, flashes) => html(Show {
-                todo,
-                flashes: flashes.flashes,
-            }),
+            TodoView::Index(todos, IncomingFlashes { flashes, .. }) => {
+                html(Index { todos, flashes })
+            }
+            TodoView::Show(todo, IncomingFlashes { flashes, .. }) => html(Show { todo, flashes }),
         }
     }
 }

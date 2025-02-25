@@ -11,6 +11,7 @@ use crate::{
         Controller,
         auth::{login::LoginController, register::RegisterController},
         home::HomeController,
+        ping::PingController,
         todos::TodoController,
     },
     middlewares::auth::AuthBackend,
@@ -33,6 +34,7 @@ pub fn init_router(
         .merge(HomeController::router())
         .merge(LoginController::router())
         .merge(RegisterController::router())
+        .merge(PingController::router())
         .nest_service("/static", static_assets)
         .with_state(app_state.clone())
         .layer(ServiceBuilder::new().layer((

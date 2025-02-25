@@ -1,0 +1,52 @@
+# fly.toml app configuration file generated for notebar on 2025-01-29T15:36:40+11:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'nohead-rs'
+primary_region = 'syd'
+
+[env]
+PRIMARY_REGION = 'syd'
+
+[build]
+
+[[mounts]]
+source = 'data'
+destination = '/data'
+
+[http_service]
+internal_port = 8080
+force_https = true
+processes = ['app']
+
+[[http_service.checks]]
+interval = '30s'
+timeout = '5s'
+grace_period = '10s'
+method = 'GET'
+path = '/ping'
+
+[[services.ports]]
+port = 80
+handlers = ['http']
+force_https = true
+
+[[services.ports]]
+port = 443
+handlers = ['tls', 'http']
+
+[services.concurrency]
+type = 'connections'
+hard_limit = 25
+soft_limit = 20
+
+[[services.tcp_checks]]
+interval = '15s'
+timeout = '2s'
+grace_period = '1s'
+
+[[vm]]
+memory = '1gb'
+cpu_kind = 'shared'
+cpus = 1

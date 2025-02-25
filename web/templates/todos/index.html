@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}Todos{% endblock %}
-
 {% block content %}
     <h1>Your Todos</h1>
     <ul>
@@ -14,7 +12,6 @@
             </li>
         {% endfor %}
     </ul>
-
     <h2>Add a Todo</h2>
     <form hx-post="/todos" hx-target="body" hx-target-errors="#errors">
         <label>
@@ -25,7 +22,4 @@
         </label>
     </form>
     <span id="errors"></span>
-    {% for flash in flashes %}
-    <p>{{flash.message}}</p>
-    {% endfor %}
 {% endblock %}

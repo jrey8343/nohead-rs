@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "insert into todos (description) values (?) returning id, description\n\n",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "description",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "fb0bade751e9d74760cbe1bf67cc3f51d1b2c4e83eb466f82b555e596bb93fc3"
+}

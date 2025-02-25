@@ -13,6 +13,7 @@ use crate::{
 
 pub mod auth;
 pub mod home;
+pub mod ping;
 pub mod todos;
 
 /// ------------------------------------------------------------------------

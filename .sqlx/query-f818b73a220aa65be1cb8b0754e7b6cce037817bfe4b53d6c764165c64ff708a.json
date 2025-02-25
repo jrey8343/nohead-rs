@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "update todos set description = (?) where id = (?) returning id, description\n\n",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "description",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "f818b73a220aa65be1cb8b0754e7b6cce037817bfe4b53d6c764165c64ff708a"
+}

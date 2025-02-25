@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "delete from todos where id = ? returning id, description\n\n",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "description",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "acd31e347b2c58c5067cb405fc126eb59d415aaf3809ad23f4340d0b68b978b1"
+}

@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "select id, description from todos\n\n",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "description",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "25a2ebbd09e6b286b0250d9d231488baa6b8732bc5dcd85a48f0c9648a3a46c2"
+}

@@ -18,9 +18,7 @@ pub struct Index {
 impl IntoResponse for RegisterView {
     fn into_response(self) -> Response {
         match self {
-            RegisterView::Index(flashes) => html(Index {
-                flashes: flashes.flashes,
-            }),
+            RegisterView::Index(IncomingFlashes { flashes, .. }) => html(Index { flashes }),
         }
     }
 }

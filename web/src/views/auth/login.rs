@@ -19,10 +19,9 @@ pub struct Index {
 impl IntoResponse for LoginView {
     fn into_response(self) -> Response {
         match self {
-            LoginView::Index(flashes, next) => html(Index {
-                flashes: flashes.flashes,
-                next,
-            }),
+            LoginView::Index(IncomingFlashes { flashes, .. }, next) => {
+                html(Index { flashes, next })
+            }
         }
     }
 }

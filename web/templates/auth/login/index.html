@@ -1,27 +1,17 @@
 {% extends "base.html" %}
-
 {% block title %}Login{% endblock %}
-
 {% block content %}
     <h1>Login</h1>
-    <form hx-post="/auth/login"
-          hx-target="body"
-          hx-push-url="true">
+    <form hx-post="/auth/login" hx-target="body" hx-push-url="true">
         <label>
             Email:
-            <input type="username"
-                   name="email"
-                   required />
+            <input type="username" name="email" required />
         </label>
         <label>
             Password:
-            <input type="password"
-                   name="password"
-                   required />
+            <input type="password" name="password" required />
         </label>
-        {% if let Some(next) = next %}
-          <input type="hidden" name="next" value="{{next}}" />
-        {% endif %}
+        {% if let Some(next) = next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
         <button type="submit">Login</button>
     </form>
 {% endblock %}
