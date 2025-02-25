@@ -1,6 +1,6 @@
 [server]
 port = 8080
-ip = "127.0.0.1"
+ip = "0.0.0.0"
 
 [tracing]
 enable = true
@@ -11,4 +11,4 @@ uri = "sqlite://nohead_rs.db"
 
 [static_assets]
 precompressed = true
-path = "static"
+path = "app/web/static"

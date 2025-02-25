@@ -1,4 +1,4 @@
-FROM lukemathwalker/cargo-chef:latest-rust-1.84.0 AS chef
+FROM lukemathwalker/cargo-chef:latest-rust-1.85.0 AS chef
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN cargo chef cook --release --recipe-path recipe.json
 
 COPY . .
 ENV SQLX_OFFLINE true
-RUN cargo build --release --bin nohead-rs
+RUN cargo build --release --bin nohead-rs_web
 
 # Runtime stage
 FROM debian:bookworm-slim AS runtime
@@ -36,8 +36,8 @@ RUN apt-get update -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# Copy the binary from the builder stage to the runtime stage
-COPY --from=builder /app/target/release/nohead-rs nohead-rs
+# Copy the workspace binaries from the builder stage to the runtime stage
+COPY --from=builder /app/target/release/nohead-rs_web nohead-rs_web
 
 # Copy sqlx binary from builder stage to runtime stage for migrations
 COPY --from=builder /usr/local/cargo/bin/sqlx /usr/local/bin/sqlx

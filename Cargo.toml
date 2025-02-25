@@ -1,11 +1,8 @@
-cargo-features = ["profile-rustflags"]
-
 [workspace]
 members = ['web', 'db', 'config']
 resolver = '2'
 
 [profile.dev]
-rustflags = ["-Z", "threads=8"]
 opt-level = 1
 
 [profile.dev.package."*"]

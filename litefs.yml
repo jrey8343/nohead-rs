@@ -26,4 +26,4 @@ exec:
   - cmd: "/usr/local/bin/create_or_migrate_db.sh"
     if-candidate: true
 
-  - cmd: "./nohead-rs"
+  - cmd: "./nohead-rs_web"
