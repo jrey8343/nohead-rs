@@ -1,0 +1,26 @@
+[package]
+name = "mailer"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+doctest = false
+
+[features]
+test-helpers = ["dep:fake"]
+
+[dependencies]
+nohead-rs_config = { path = "../config" }
+
+color-eyre = "0.6.3"
+reqwest = { version = "0.12.12", features = ["json"] }
+serde = { version = "1.0.218", features = ["derive"] }
+thiserror = "2.0.11"
+validator = { version = "0.20.0", features = ["derive"] }
+fake = { version = "4.0.0", features = ["derive"], optional = true }
+serde_json = "1.0.139"
+tokio = "1.43.0"
+
+[dev-dependencies]
+wiremock = "0.6.2"
+fake = { version = "4.0.0", features = ["derive"] }

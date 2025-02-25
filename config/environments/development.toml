@@ -12,3 +12,8 @@ uri = "sqlite://db/nohead_rs.db"
 [static_assets]
 precompressed = false
 path = "static"
+
+[mailer]
+base_url = "https://api.resend.com"
+sender = "dev@notebar.io"
+timeout = 200

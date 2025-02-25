@@ -12,3 +12,8 @@ uri = "sqlite:///litefs/sqlite.db"
 [static_assets]
 precompressed = true
 path = "app/web/static"
+
+[mailer]
+base_url = "https://api.resend.com"
+sender = "dev@notebar.io"
+timeout = 200

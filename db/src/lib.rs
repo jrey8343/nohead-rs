@@ -59,8 +59,8 @@ pub enum Error {
     /// General database error, e.g. communicating with the database failed
     #[error("database query failed")]
     DatabaseError(#[from] sqlx::Error),
-    #[error("validation failed")]
     /// An invalid changeset was passed to a writing operation such as creating or updating a record.
+    #[error("validation failed")]
     ValidationError(#[from] validator::ValidationErrors),
     /// An error occurred while hashing a password.
     #[error("password hashing failed")]

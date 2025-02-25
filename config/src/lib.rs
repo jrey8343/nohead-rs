@@ -23,6 +23,7 @@ pub struct Config {
     pub database: DatabaseConfig,
     pub tracing: TracingConfig,
     pub static_assets: StaticAssetsConfig,
+    pub mailer: MailerConfig,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
@@ -77,6 +78,13 @@ pub struct StaticAssetsConfig {
 pub struct TracingConfig {
     pub enable: bool,
     pub env_filter: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct MailerConfig {
+    pub base_url: String,
+    pub sender: String,
+    pub timeout: u64,
 }
 
 /// Loads the application configuration for a particular environment.
@@ -134,7 +142,8 @@ where
                 .key("server")
                 .key("database")
                 .key("tracing")
-                .key("static_assets"),
+                .key("static_assets")
+                .key("mailer"),
         )
         .merge(Toml::file("config/app.toml"))
         .merge(Toml::file(format!(
