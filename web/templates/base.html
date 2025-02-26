@@ -22,6 +22,9 @@
             <a href="/todos">Todos</a>
             <a href="/auth/login">Login</a>
             <a href="/auth/register">Register</a>
+            <form method="POST" action="/auth/logout">
+                <button>Logout</button>
+            </form>
         </nav>
         {% block content %}{% endblock %}
         {% if flashes.len() > 0 %}

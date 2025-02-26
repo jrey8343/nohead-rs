@@ -1,7 +1,7 @@
-CREATE TABLE IF NOT EXISTS users
-(
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY NOT NULL,
     email VARCHAR(256) UNIQUE NOT NULL,
-    password_hash VARCHAR(256) NOT NULL
-)
+    password_hash VARCHAR(256) NOT NULL,
+    status VARCHAR(256) NOT NULL DEFAULT 'pending'
+);
 

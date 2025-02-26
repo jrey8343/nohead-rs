@@ -1,14 +1,5 @@
 use core::time;
 
-#[cfg(feature = "test-helpers")]
-use fake::{
-    Dummy, Fake, Faker,
-    faker::{
-        internet::en::SafeEmail,
-        lorem::en::{Paragraph, Sentence},
-    },
-};
-
 use nohead_rs_config::MailerConfig;
 use reqwest::Client;
 use serde::Serialize;
@@ -38,12 +29,16 @@ fn validate_collection_of_emails(emails: &Vec<String>) -> Result<(), ValidationE
 impl EmailPayload {
     pub fn new(
         from: String,
-        mut to: Vec<String>,
+        #[cfg(debug_assertions)] mut to: Vec<String>,
+        // mutable in debug mode to allow changing
+        // the recipient
+        #[cfg(not(debug_assertions))] to: Vec<String>,
         subject: String,
         html: String,
         text: String,
     ) -> Self {
         if cfg!(debug_assertions) {
+            // Change the recipient to a test email address if we are in debug mode
             let test_recipient = "delivered@resend.dev".to_string();
             to = vec![test_recipient];
         };
@@ -82,9 +77,8 @@ impl EmailClient {
     pub fn new(config: &MailerConfig) -> Self {
         let timeout = time::Duration::from_millis(config.timeout);
         let http_client = Client::builder().timeout(timeout).build().unwrap();
-        let authorization_token = std::env::var("RESEND_API_KEY").unwrap_or_default();
-        //FIX: Work
-        //out how to read from .env.test
+        let authorization_token =
+            std::env::var("RESEND_API_KEY").expect("RESEND_API_KEY must be set in .env");
 
         Self {
             http_client,
@@ -94,15 +88,10 @@ impl EmailClient {
         }
     }
 
-    pub async fn send_email(&self, mut payload: EmailPayload) -> Result<(), Error> {
+    pub async fn send_email(&self, payload: EmailPayload) -> Result<(), Error> {
         payload.validate()?;
 
         let url = format!("{}/emails", self.base_url);
-
-        if cfg!(debug_assertions) {
-            let test_recipient = "delivered@resend.dev".to_string();
-            payload.to = vec![test_recipient];
-        };
 
         let res = self
             .http_client
@@ -142,6 +131,7 @@ mod tests {
         },
     };
 
+    use nohead_rs_config::{Config, Environment, load_config};
     use wiremock::matchers::{any, header, header_exists, method, path};
     use wiremock::{Mock, MockServer, Request, ResponseTemplate};
 
@@ -182,10 +172,12 @@ mod tests {
     }
 
     fn get_test_email_client(mock_server: &MockServer) -> EmailClient {
+        let config: Config = load_config(&Environment::Test).unwrap();
+
         let mailer_config = MailerConfig {
             base_url: mock_server.uri().to_string(),
-            sender: SafeEmail().fake(),
-            timeout: 200,
+            sender: config.mailer.sender.clone(),
+            timeout: config.mailer.timeout,
         };
         EmailClient::new(&mailer_config)
     }

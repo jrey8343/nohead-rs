@@ -3,8 +3,8 @@ use argon2::{
     password_hash::{self, SaltString, rand_core::OsRng},
 };
 use axum_login::AuthUser;
-use serde::Deserialize;
-use sqlx::{Sqlite, prelude::FromRow};
+use serde::{Deserialize, Serialize};
+use sqlx::{Sqlite, Type, prelude::FromRow};
 use validator::Validate;
 
 #[cfg(feature = "test-helpers")]
@@ -15,12 +15,31 @@ use fake::{
 
 use crate::{Error, ResultExt};
 
-#[derive(Clone, FromRow, Deserialize)]
+#[derive(Clone, FromRow, Deserialize, Serialize)]
 pub struct User {
     id: i64,
     pub email: String,
     pub password_hash: String,
+    pub status: UserStatus,
 }
+
+#[derive(Clone, Deserialize, Serialize, Debug, Type)]
+#[sqlx(type_name = "TEXT")]
+pub enum UserStatus {
+    Confirmed,
+    Pending,
+}
+
+impl From<String> for UserStatus {
+    fn from(val: String) -> Self {
+        match val.as_str() {
+            "confirmed" => UserStatus::Confirmed,
+            "pending" => UserStatus::Pending,
+            _ => UserStatus::Pending,
+        }
+    }
+}
+
 // Here we've implemented `Debug` manually to avoid accidentally logging the
 // password hash.
 impl std::fmt::Debug for User {
@@ -29,6 +48,7 @@ impl std::fmt::Debug for User {
             .field("id", &self.id)
             .field("email", &self.email)
             .field("password", &"[redacted]")
+            .field("status", &self.status)
             .finish()
     }
 }
@@ -115,7 +135,7 @@ impl User {
     ) -> Result<Option<User>, Error> {
         let user = sqlx::query_as!(
             User,
-            r#"select id, email, password_hash from users where email = ?
+            r#"select * from users where email = ?
 
 "#,
             email
@@ -130,7 +150,7 @@ impl User {
     ) -> Result<Option<User>, Error> {
         let user = sqlx::query_as!(
             User,
-            r#"select id, email, password_hash from users where id = ?
+            r#"select * from users where id = ?
 
 "#,
             id
@@ -152,13 +172,14 @@ impl User {
         let user = sqlx::query_as!(
             User,
             r#"
-            insert into users (email, password_hash)
-            values (?, ?)
+            insert into users (email, password_hash, status)
+            values (?, ?, ?)
             returning *
 
 "#,
             user.email,
-            password_hash
+            password_hash,
+            UserStatus::Pending
         )
         .fetch_one(executor)
         .await

@@ -9,7 +9,7 @@ use tower_sessions_sqlx_store::SqliteStore;
 use crate::{
     controllers::{
         Controller,
-        auth::{login::LoginController, register::RegisterController},
+        auth::{login::LoginController, logout::LogoutController, register::RegisterController},
         home::HomeController,
         ping::PingController,
         todos::TodoController,
@@ -33,6 +33,7 @@ pub fn init_router(
         .route_layer(login_required!(AuthBackend, login_url = "/auth/login"))
         .merge(HomeController::router())
         .merge(LoginController::router())
+        .merge(LogoutController::router())
         .merge(RegisterController::router())
         .merge(PingController::router())
         .nest_service("/static", static_assets)
