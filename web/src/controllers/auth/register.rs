@@ -2,10 +2,12 @@ use axum::Router;
 use axum::extract::State;
 use axum::routing::get;
 use axum::{Form, response::Redirect};
+use nohead_rs_db::entities::register_token::RegisterToken;
 use nohead_rs_db::entities::user::{RegisterUser, User};
+use nohead_rs_db::transaction;
+use nohead_rs_mailer::emails::send_register_confirm_email;
 
 use crate::error::Error;
-use crate::middlewares::auth::AuthSession;
 use crate::middlewares::flash::{Flash, IncomingFlashes};
 use crate::state::AppState;
 use crate::views::auth::register::RegisterView;
@@ -25,21 +27,29 @@ impl RegisterController {
     }
 
     pub async fn register(
-        mut auth_session: AuthSession,
         flash: Flash,
         State(app_state): State<AppState>,
         Form(form): Form<RegisterUser>,
     ) -> Result<(Flash, Redirect), Error> {
-        let user = User::create(form, &app_state.db_pool).await?;
-
-        auth_session
-            .login(&user)
+        let mut tx = transaction(&app_state.db_pool).await?;
+        let user = User::create(form, &mut *tx).await?;
+        let register_token = RegisterToken::create(user.id, &mut *tx).await?;
+        tx.commit()
             .await
-            .map_err(|e| Error::Unexpected(e.into()))?;
+            .map_err(|e| Error::Database(nohead_rs_db::Error::DatabaseError(e)))?;
 
+        // Send the confirmation email
+        send_register_confirm_email(
+            &app_state.email_client,
+            &user.email,
+            &register_token.register_token,
+        )
+        .await?;
+
+        // Redirect to the confirmation page
         Ok((
-            flash.success("✅ successfully logged in!"),
-            Redirect::to("/"),
+            flash.info("please check your email for the confirmation link"),
+            Redirect::to("/auth/register/confirm"),
         ))
     }
 }

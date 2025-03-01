@@ -16,4 +16,4 @@ path = "static"
 [mailer]
 base_url = "SET_BY_WIREMOCK_IN_TEST_ENVIRONMENT"
 sender = "dev@notebar.io"
-timeout = 200
+timeout = 2000

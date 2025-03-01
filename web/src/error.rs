@@ -9,6 +9,11 @@ use tracing::error;
 pub enum Error {
     /// Unauthenticated user
     ///
+    /// Return a `401 Unauthorized` response on an invalid register token.
+    #[error("invalid register token")]
+    InvalidRegisterToken,
+    /// Unauthenticated user
+    ///
     /// Return a `401 Unauthorized` response on an unauthenticated user.
     #[error("unauthenticated user")]
     Unauthenticated,
@@ -22,6 +27,12 @@ pub enum Error {
     /// Return `500 Internal Server Error` on a db error.
     #[error("an error occured while interacting with the database")]
     Database(#[from] nohead_rs_db::Error),
+    /// An error occured while sending an email.
+    ///
+    /// Return `500 Internal Server Error` on a mailer error.
+    #[error("an error occured while sending an email")]
+    Mailer(#[from] nohead_rs_mailer::Error),
+
     /// Enumerate any possible app arrors here.
     ///
     /// Return `500 Internal Server Error` on a `eyre::Error`.
@@ -33,7 +44,7 @@ impl Error {
     fn status_code(&self) -> StatusCode {
         match self {
             // Unauthenticated user
-            Error::Unauthenticated => StatusCode::UNAUTHORIZED,
+            Error::Unauthenticated | Error::InvalidRegisterToken => StatusCode::UNAUTHORIZED,
 
             // Template rendering error
             Error::Render(_) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -61,6 +72,14 @@ impl Error {
                 StatusCode::INTERNAL_SERVER_ERROR
             }
 
+            // Request error while interacting with mailer API
+            Error::Mailer(nohead_rs_mailer::Error::Request(_)) => StatusCode::INTERNAL_SERVER_ERROR,
+
+            // Invalid inputs to mailer
+            Error::Mailer(nohead_rs_mailer::Error::Validation(_)) => {
+                StatusCode::UNPROCESSABLE_ENTITY
+            }
+
             // Unexpected error
             Error::Unexpected(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
@@ -70,6 +89,10 @@ impl Error {
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
         match self {
+            Error::InvalidRegisterToken => {
+                // TODO: Return a invalid register token view here.
+                return (self.status_code(), "invalid register token".to_string()).into_response();
+            }
             Error::Unauthenticated => {
                 // TODO: Return a not authenticated view here.
                 return (self.status_code(), "unauthenticated".to_string()).into_response();
@@ -102,6 +125,13 @@ impl IntoResponse for Error {
                 // TODO: Return a password hash error view here.
                 error!("an error occured while hashing a password: {:?}", err);
             }
+            Error::Mailer(nohead_rs_mailer::Error::Request(ref err)) => {
+                error!("an error occured while sending email request: {:?}", err);
+            }
+            Error::Mailer(nohead_rs_mailer::Error::Validation(ref err)) => {
+                error!("invalid inputs to mailer: {:?}", err);
+            }
+
             Error::Unexpected(ref err) => {
                 error!("an internal server error occured: {:?}", err);
             }

@@ -28,3 +28,4 @@ validator = { version = "0.20.0", features = ["derive"] }
 fake = { version = "4.0.0", features = ["derive"], optional = true }
 axum-login = "0.17.0"
 argon2 = { version = "0.5.3", features = ["std"] }
+rand = { version = "0.9.0", features = ["std_rng"] }

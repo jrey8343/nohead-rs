@@ -17,7 +17,7 @@ use crate::{Error, ResultExt};
 
 #[derive(Clone, FromRow, Deserialize, Serialize)]
 pub struct User {
-    id: i64,
+    pub id: i64,
     pub email: String,
     pub password_hash: String,
     pub status: UserStatus,
@@ -144,6 +144,7 @@ impl User {
         .await?;
         Ok(user)
     }
+
     pub async fn try_get_by_id(
         id: &i64,
         executor: impl sqlx::Executor<'_, Database = Sqlite>,
@@ -184,6 +185,26 @@ impl User {
         .fetch_one(executor)
         .await
         .map_constraint_err()?; // return an app error if user already exists
+
+        Ok(user)
+    }
+
+    pub async fn update_status(
+        id: i64,
+        status: UserStatus,
+        executor: impl sqlx::Executor<'_, Database = Sqlite>,
+    ) -> Result<User, Error> {
+        let user = sqlx::query_as!(
+            User,
+            r#"update users set status = (?) where id = (?) returning *
+
+"#,
+            status,
+            id
+        )
+        .fetch_optional(executor)
+        .await?
+        .ok_or(Error::NoRecordFound)?;
 
         Ok(user)
     }

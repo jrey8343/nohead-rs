@@ -1409,22 +1409,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04cbf5b083de1c7e0222a7a51dbfdba1cbe1c6ab0b15e29fff3f6c077fd9cd9f"
 
 [[package]]
-name = "mailer"
-version = "0.1.0"
-dependencies = [
- "color-eyre",
- "fake",
- "nohead-rs_config",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror 2.0.11",
- "tokio",
- "validator",
- "wiremock",
-]
-
-[[package]]
 name = "matchers"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1535,10 +1519,27 @@ dependencies = [
  "color-eyre",
  "fake",
  "nohead-rs_config",
+ "rand 0.9.0",
  "serde",
  "sqlx",
  "thiserror 2.0.11",
  "validator",
+]
+
+[[package]]
+name = "nohead-rs_mailer"
+version = "0.1.0"
+dependencies = [
+ "color-eyre",
+ "fake",
+ "nohead-rs_config",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.11",
+ "tokio",
+ "validator",
+ "wiremock",
 ]
 
 [[package]]
@@ -1555,6 +1556,7 @@ dependencies = [
  "http-body-util",
  "nohead-rs_config",
  "nohead-rs_db",
+ "nohead-rs_mailer",
  "password-auth",
  "rinja",
  "serde",

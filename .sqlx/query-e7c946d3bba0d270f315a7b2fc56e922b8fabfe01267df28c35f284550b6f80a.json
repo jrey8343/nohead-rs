@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "select id, email, password_hash from users where id = ?\n\n",
+  "query": "select * from users where id = ?\n\n",
   "describe": {
     "columns": [
       {
@@ -17,6 +17,11 @@
         "name": "password_hash",
         "ordinal": 2,
         "type_info": "Text"
+      },
+      {
+        "name": "status",
+        "ordinal": 3,
+        "type_info": "Text"
       }
     ],
     "parameters": {
@@ -25,8 +30,9 @@
     "nullable": [
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "b2a6a578ffc37cb0738e7ffdecda80ae57e43cb1a1f1d099838706b47c87e7c7"
+  "hash": "e7c946d3bba0d270f315a7b2fc56e922b8fabfe01267df28c35f284550b6f80a"
 }

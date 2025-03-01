@@ -1,0 +1,38 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            insert into users (email, password_hash, status)\n            values (?, ?, ?)\n            returning *\n\n",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "email",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "password_hash",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "status",
+        "ordinal": 3,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "c86adf1c7af2084b60f62a0500073cb2e28ff28c72ede5e53ced244f47956faa"
+}

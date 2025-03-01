@@ -3,6 +3,7 @@ use axum_extra::extract::cookie::Key;
 use color_eyre::Result;
 use nohead_rs_config::{Config, Environment, load_config};
 use nohead_rs_db::{DbPool, connect_pool};
+use nohead_rs_mailer::EmailClient;
 
 use crate::{error::Error, middlewares::flash};
 
@@ -13,6 +14,7 @@ pub struct AppState {
     pub config: Config,
     pub db_pool: DbPool,
     pub flash_config: flash::Config,
+    pub email_client: EmailClient,
 }
 
 impl AppState {
@@ -20,12 +22,14 @@ impl AppState {
         let config: Config = load_config(&env)?;
         let db_pool = connect_pool(&config.database).await?;
         let flash_config = flash::Config::new(Key::generate());
+        let email_client = EmailClient::new(&config.mailer);
 
         Ok(Self {
             env,
             config,
             db_pool,
             flash_config,
+            email_client,
         })
     }
 }

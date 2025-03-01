@@ -1,6 +1,7 @@
 [server]
 port = 8080
 ip = "127.0.0.1"
+#FIX: Add url to the server so it can be accessed in mailer config
 
 [tracing]
 enable = true
@@ -16,4 +17,4 @@ path = "static"
 [mailer]
 base_url = "https://api.resend.com"
 sender = "dev@notebar.io"
-timeout = 200
+timeout = 2000

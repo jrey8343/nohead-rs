@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\n            insert into users (email, password_hash)\n            values (?, ?)\n            returning *\n\n",
+  "query": "select * from users where email = ?\n\n",
   "describe": {
     "columns": [
       {
@@ -17,16 +17,22 @@
         "name": "password_hash",
         "ordinal": 2,
         "type_info": "Text"
+      },
+      {
+        "name": "status",
+        "ordinal": 3,
+        "type_info": "Text"
       }
     ],
     "parameters": {
-      "Right": 2
+      "Right": 1
     },
     "nullable": [
+      false,
       false,
       false,
       false
     ]
   },
-  "hash": "3a4405e1f4c504de9850afd9bbfbbbed76c3a5aee345ed5edbac484a8acae470"
+  "hash": "0b994178d49173ab3b556e72fd8ca476715f79cf5998a0407a8dac12be2d57fe"
 }

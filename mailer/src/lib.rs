@@ -1,3 +1,5 @@
+pub mod emails;
+
 use core::time;
 
 use nohead_rs_config::MailerConfig;
@@ -6,7 +8,7 @@ use serde::Serialize;
 use validator::{Validate, ValidationError};
 
 #[derive(Serialize, Validate)]
-struct EmailPayload {
+pub struct EmailPayload {
     #[validate(email(message = "must be a valid email address"))]
     from: String,
     #[validate(custom(function = "validate_collection_of_emails"))]
@@ -54,7 +56,7 @@ impl EmailPayload {
 }
 
 #[derive(Clone)]
-struct EmailClient {
+pub struct EmailClient {
     http_client: Client,
     base_url: String,
     sender: String,
@@ -93,6 +95,7 @@ impl EmailClient {
 
         let url = format!("{}/emails", self.base_url);
 
+        dbg!(&url);
         let res = self
             .http_client
             .post(url)
@@ -104,6 +107,7 @@ impl EmailClient {
             .send()
             .await?;
 
+        dbg!(&res);
         res.error_for_status()?; // return an error if the response status is not 2xx
 
         Ok(())
