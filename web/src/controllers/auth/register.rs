@@ -5,7 +5,7 @@ use axum::{Form, response::Redirect};
 use nohead_rs_db::entities::register_token::RegisterToken;
 use nohead_rs_db::entities::user::{RegisterUser, User};
 use nohead_rs_db::transaction;
-use nohead_rs_mailer::emails::send_register_confirm_email;
+use nohead_rs_mailer::auth::AuthMailer;
 
 use crate::error::Error;
 use crate::middlewares::flash::{Flash, IncomingFlashes};
@@ -39,7 +39,8 @@ impl RegisterController {
             .map_err(|e| Error::Database(nohead_rs_db::Error::DatabaseError(e)))?;
 
         // Send the confirmation email
-        send_register_confirm_email(
+        AuthMailer::send_confirmation(
+            &app_state.config,
             &app_state.email_client,
             &user.email,
             &register_token.register_token,

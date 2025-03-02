@@ -1,1 +1,3 @@
 # add default config settings here…
+[app]
+name = "nohead-rs"

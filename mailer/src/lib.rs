@@ -1,4 +1,4 @@
-pub mod emails;
+pub mod auth;
 
 use core::time;
 
@@ -95,7 +95,6 @@ impl EmailClient {
 
         let url = format!("{}/emails", self.base_url);
 
-        dbg!(&url);
         let res = self
             .http_client
             .post(url)
@@ -107,7 +106,6 @@ impl EmailClient {
             .send()
             .await?;
 
-        dbg!(&res);
         res.error_for_status()?; // return an error if the response status is not 2xx
 
         Ok(())

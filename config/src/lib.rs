@@ -12,6 +12,7 @@ use figment::{
 };
 use serde::{Deserialize, Serialize};
 use tracing::info;
+
 /// The application configuration.
 ///
 /// This struct is the central point for the entire application configuration. It holds the [`ServerConfig`] [`DatabaseConfig`] [`TracingConfig`] as well as [`StaticAssetsConfig`] and can be extended with any application-specific configuration settings that will be read from the main `app.toml` and the environment-specific configuration files.
@@ -19,11 +20,18 @@ use tracing::info;
 /// For any setting that appears in both the `app.toml` and the environment-specific file, the latter will override the former so that default settings can be kept in `app.toml` that are overridden per environment if necessary.
 #[derive(Deserialize, Clone, Debug)]
 pub struct Config {
+    pub app: AppConfig,
     pub server: ServerConfig,
     pub database: DatabaseConfig,
     pub tracing: TracingConfig,
     pub static_assets: StaticAssetsConfig,
     pub mailer: MailerConfig,
+}
+
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub struct AppConfig {
+    /// The name of the app which can be presented in the UI
+    pub name: String,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
@@ -48,6 +56,7 @@ impl Default for ServerConfig {
         }
     }
 }
+
 impl ServerConfig {
     /// Returns the full address the server binds to, including both the ip and port.
     ///
