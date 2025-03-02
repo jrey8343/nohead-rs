@@ -1,7 +1,10 @@
 use std::{path::Path, time::Duration};
 
-use axum::{Router, routing::get};
+use apalis_sql::sqlite::SqliteStorage;
+use axum::{Extension, Router, routing::get};
 use axum_login::{AuthManagerLayer, login_required};
+use nohead_rs_db::DeserializeOwned;
+use serde::Serialize;
 use tower::ServiceBuilder;
 use tower_http::{services::ServeDir, timeout::TimeoutLayer, trace::TraceLayer};
 use tower_sessions_sqlx_store::SqliteStore;
@@ -21,10 +24,14 @@ use crate::{
     state::AppState,
 };
 
-pub fn init_router(
+pub fn init_router<T>(
     app_state: &AppState,
     auth_layer: AuthManagerLayer<AuthBackend, SqliteStore, tower_sessions::service::SignedCookie>,
-) -> Router {
+    worker_layer: SqliteStorage<T>,
+) -> Router
+where
+    T: 'static + Serialize + DeserializeOwned + Send + Sync + Unpin,
+{
     let static_assets = ServeDir::new(Path::new(env!("CARGO_MANIFEST_DIR")).join("static"));
 
     Router::new()
@@ -48,5 +55,6 @@ pub fn init_router(
             // requests don't hang forever.
             TimeoutLayer::new(Duration::from_secs(10)),
             auth_layer,
+            Extension(worker_layer),
         )))
 }

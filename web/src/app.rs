@@ -1,4 +1,8 @@
-use nohead_rs_config::Environment;
+use std::sync::Arc;
+
+use apalis::prelude::*;
+use nohead_rs_config::{Config, Environment};
+use nohead_rs_mailer::{EmailClient, EmailPayload};
 use tower_sessions::session_store;
 use tracing::{debug, info};
 
@@ -11,13 +15,21 @@ use tokio::{
 };
 
 use crate::{
-    middlewares::auth::AuthSessionManager, router::init_router, state::AppState, tracing::Tracing,
+    error::Error, middlewares::auth::AuthSessionManager, router::init_router, state::AppState,
+    tracing::Tracing,
 };
 
 pub struct App {
     pub router: Router,
     pub app_state: AppState,
     pub deletion_task: JoinHandle<Result<(), session_store::Error>>,
+    pub worker_monitor_task: JoinHandle<Result<(), std::io::Error>>,
+}
+
+async fn send_email(job: EmailPayload, app_state: Data<AppState>) -> Result<(), Error> {
+    app_state.email_client.send_email(job).await?;
+
+    Ok(())
 }
 
 impl App {
@@ -30,13 +42,33 @@ impl App {
             deletion_task,
             auth_layer,
         } = AuthSessionManager::new(&app_state);
+        //
+        // Background job worker
+        let worker_storage = apalis_sql::sqlite::SqliteStorage::new(app_state.db_pool.clone());
+        let router = init_router(&app_state, auth_layer, worker_storage.clone());
 
-        let router = init_router(&app_state, auth_layer);
+        let app_state_cloned = app_state.clone();
+        let worker_monitor_task = tokio::task::spawn(async move {
+            Monitor::new()
+                .register({
+                    WorkerBuilder::new("email-worker")
+                        .concurrency(2)
+                        .data(app_state_cloned)
+                        .enable_tracing()
+                        .backend(worker_storage.clone())
+                        .build_fn(send_email)
+                })
+                .run()
+                .await
+                .unwrap();
+            Ok::<(), std::io::Error>(())
+        });
 
         Ok(Self {
             router,
             app_state,
             deletion_task,
+            worker_monitor_task,
         })
     }
 
@@ -51,10 +83,13 @@ impl App {
         );
 
         serve(listener, app.router)
-            .with_graceful_shutdown(shutdown_signal(app.deletion_task.abort_handle()))
+            .with_graceful_shutdown(shutdown_signal(vec![
+                app.deletion_task.abort_handle(),
+                app.worker_monitor_task.abort_handle(),
+            ]))
             .await?;
 
-        App::shutdown_with_cleanup(app.deletion_task).await?;
+        App::shutdown_with_cleanup(app.deletion_task, app.worker_monitor_task).await?;
 
         Ok(())
     }
@@ -77,9 +112,9 @@ impl App {
 
         Ok(())
     }
-
     async fn shutdown_with_cleanup(
         deletion_task: JoinHandle<Result<(), session_store::Error>>,
+        monitor_task: JoinHandle<Result<(), std::io::Error>>,
     ) -> Result<()> {
         match deletion_task.await {
             Ok(_) => (), // nothing to cleanup
@@ -89,13 +124,20 @@ impl App {
             Err(err) => panic!("session deletion task failed to cleanup: {:?}", err),
         }
 
+        match monitor_task.await {
+            Ok(_) => (), // nothing to cleanup
+            Err(err) if err.is_cancelled() => {
+                tracing::debug!("worker monitor task cleaned up.")
+            }
+            Err(err) => panic!("worker monitor task failed to cleanup: {:?}", err),
+        }
+
         info!("server shutdown successfully");
 
         Ok(())
     }
 }
-
-async fn shutdown_signal(deletion_task_abort_handle: AbortHandle) {
+async fn shutdown_signal(task_handles: Vec<AbortHandle>) {
     let ctrl_c = async {
         signal::ctrl_c()
             .await
@@ -114,7 +156,11 @@ async fn shutdown_signal(deletion_task_abort_handle: AbortHandle) {
     let terminate = std::future::pending::<()>();
 
     tokio::select! {
-        _ = ctrl_c => { deletion_task_abort_handle.abort() },
-        _ = terminate => { deletion_task_abort_handle.abort() },
+        _ = ctrl_c => { for task_handle in task_handles {
+            task_handle.abort();
+        } },
+        _ = terminate => { for task_handle in task_handles {
+            task_handle.abort();
+        } },
     }
 }

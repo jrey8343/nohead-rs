@@ -5,12 +5,12 @@ use crate::{EmailClient, EmailPayload, Error};
 pub struct AuthMailer;
 
 impl AuthMailer {
-    pub async fn send_confirmation(
-        config: &Config,
+    pub fn send_confirmation(
         email_client: &EmailClient,
+        config: &Config,
         email_recipient: &str,
         register_token: &str,
-    ) -> Result<(), Error> {
+    ) -> EmailPayload {
         let subject = "Please confirm your registration".to_string();
 
         let text = format!(
@@ -23,14 +23,12 @@ impl AuthMailer {
             config.app.name, register_token
         );
 
-        let payload = EmailPayload::new(
+        EmailPayload::new(
             email_client.sender.clone(),
             vec![email_recipient.to_owned()],
             subject,
             html,
             text,
-        );
-
-        email_client.send_email(payload).await
+        )
     }
 }
