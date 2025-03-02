@@ -2,10 +2,9 @@ use axum::extract::State;
 use axum::response::Redirect;
 use axum::routing::get;
 use axum::{Form, Router};
-use nohead_rs_db::entities::register_token::RegisterToken;
+use nohead_rs_db::entities::register_token::{RegisterToken, RegisterTokenValidate};
 use nohead_rs_db::entities::user::{User, UserStatus};
 use nohead_rs_db::transaction;
-use serde::Deserialize;
 
 use crate::error::Error;
 use crate::middlewares::auth::AuthSession;
@@ -14,11 +13,6 @@ use crate::state::AppState;
 use crate::views::auth::register_confirm::RegisterConfirmView;
 
 pub struct RegisterConfirmController;
-
-#[derive(Deserialize)]
-pub struct Verify {
-    register_token: String,
-}
 
 impl RegisterConfirmController {
     pub fn router() -> Router<AppState> {
@@ -36,14 +30,13 @@ impl RegisterConfirmController {
         flash: Flash,
         State(state): State<AppState>,
         mut auth_session: AuthSession,
-        Form(form): Form<Verify>,
+        Form(form): Form<RegisterTokenValidate>,
     ) -> Result<(Flash, Redirect), Error> {
         let mut tx = transaction(&state.db_pool).await?;
         // Get the user id by the user input register token
-        let user_id =
-            RegisterToken::try_get_user_id_by_register_token(&form.register_token, &mut *tx)
-                .await?
-                .ok_or_else(|| Error::InvalidRegisterToken)?;
+        let user_id = RegisterToken::try_get_user_id_by_register_token(form, &mut *tx)
+            .await?
+            .ok_or_else(|| Error::InvalidRegisterToken)?;
         // Update the user status to confirmed
         let user = User::update_status(user_id, UserStatus::Confirmed, &mut *tx).await?;
         // Commit the transaction
