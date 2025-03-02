@@ -39,14 +39,20 @@ impl RegisterController {
             .map_err(|e| Error::Database(nohead_rs_db::Error::DatabaseError(e)))?;
 
         // Send the confirmation email
-        AuthMailer::send_confirmation(
-            &app_state.config,
-            &app_state.email_client,
-            &user.email,
-            &register_token.register_token,
-        )
-        .await?;
-
+        tokio::spawn(async move {
+            AuthMailer::send_confirmation(
+                &app_state.config,
+                &app_state.email_client,
+                &user.email,
+                &register_token.register_token,
+            )
+            .await
+            .map_err(|e| {
+                tracing::error!("failed to send confirmation email: {:?}", e);
+            })
+            .ok();
+        });
+        //
         // Redirect to the confirmation page
         Ok((
             flash.info("please check your email for the confirmation link"),

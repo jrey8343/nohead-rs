@@ -35,6 +35,7 @@ impl AuthMailer {
             html,
             text,
         );
+
         email_client.send_email(payload).await
     }
 }
