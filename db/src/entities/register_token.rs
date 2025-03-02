@@ -54,6 +54,6 @@ fn generate_register_token() -> String {
     let mut rng = rand::rng();
     std::iter::repeat_with(|| rng.sample(rand::distr::Alphanumeric))
         .map(char::from)
-        .take(25)
+        .take(6)
         .collect()
 }

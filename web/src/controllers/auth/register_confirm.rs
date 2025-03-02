@@ -1,7 +1,7 @@
-use axum::Router;
-use axum::extract::{Query, State};
-use axum::response::{IntoResponse, Redirect};
+use axum::extract::State;
+use axum::response::Redirect;
 use axum::routing::get;
+use axum::{Form, Router};
 use nohead_rs_db::entities::register_token::RegisterToken;
 use nohead_rs_db::entities::user::{User, UserStatus};
 use nohead_rs_db::transaction;
@@ -16,41 +16,34 @@ use crate::views::auth::register_confirm::RegisterConfirmView;
 pub struct RegisterConfirmController;
 
 #[derive(Deserialize)]
-pub struct Params {
-    register_token: Option<String>,
+pub struct Verify {
+    register_token: String,
 }
 
 impl RegisterConfirmController {
     pub fn router() -> Router<AppState> {
         Router::new().route(
             "/auth/register/confirm",
-            get(RegisterConfirmController::index),
+            get(RegisterConfirmController::index).post(RegisterConfirmController::verify),
         )
     }
 
-    pub async fn index(
-        mut auth_session: AuthSession,
-        flash: Flash,
-        flashes: IncomingFlashes,
-        State(state): State<AppState>,
-        Query(params): Query<Params>,
-    ) -> Result<(Flash, impl IntoResponse), Error> {
-        // If there is no register token in the params then just return the view
-        if params.register_token.is_none() {
-            return Ok((
-                flash.info("Check your email for the confirmation link"),
-                RegisterConfirmView::Index(flashes).into_response(),
-            ));
-        }
+    pub async fn index(flashes: IncomingFlashes) -> RegisterConfirmView {
+        RegisterConfirmView::Index(flashes)
+    }
 
+    pub async fn verify(
+        flash: Flash,
+        State(state): State<AppState>,
+        mut auth_session: AuthSession,
+        Form(form): Form<Verify>,
+    ) -> Result<(Flash, Redirect), Error> {
         let mut tx = transaction(&state.db_pool).await?;
-        // Get the user id by the register token
-        let user_id = RegisterToken::try_get_user_id_by_register_token(
-            &params.register_token.unwrap(),
-            &mut *tx,
-        )
-        .await?
-        .ok_or_else(|| Error::InvalidRegisterToken)?;
+        // Get the user id by the user input register token
+        let user_id =
+            RegisterToken::try_get_user_id_by_register_token(&form.register_token, &mut *tx)
+                .await?
+                .ok_or_else(|| Error::InvalidRegisterToken)?;
         // Update the user status to confirmed
         let user = User::update_status(user_id, UserStatus::Confirmed, &mut *tx).await?;
         // Commit the transaction
@@ -66,7 +59,7 @@ impl RegisterConfirmController {
 
         Ok((
             flash.success("Welcome! You are now registered"),
-            Redirect::to("/").into_response(),
+            Redirect::to("/"),
         ))
     }
 }

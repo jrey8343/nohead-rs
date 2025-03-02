@@ -55,7 +55,7 @@ impl RegisterController {
         //
         // Redirect to the confirmation page
         Ok((
-            flash.info("please check your email for the confirmation link"),
+            flash.info("please check your email for the confirmation code"),
             Redirect::to("/auth/register/confirm"),
         ))
     }

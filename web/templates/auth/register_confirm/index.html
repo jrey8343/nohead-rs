@@ -2,8 +2,14 @@
 {% block title %}
     Confirm Registration
 {% endblock title %}
-{% block body %}
-    <main class="[ wrapper ]">
-        <h1 class="[ text-step-3 ]">Please check your email to confirm your account 📥</h1>
+{% block content %}
+    <main>
+        <h1>Please check your email to confirm your account 📥</h1>
+        <form method="POST" action="/auth/register/confirm">
+            <label>
+                <input type="text" name="register_token" placeholder="Enter your token" />
+            </label>
+            <button type="submit">Confirm</button>
+        </form>
     </main>
-{% endblock body %}
+{% endblock content %}
