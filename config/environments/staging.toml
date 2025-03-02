@@ -1,6 +1,7 @@
 [server]
 port = 8080
 ip = "0.0.0.0"
+host = "https://nohead-rs.fly.dev"
 
 [tracing]
 enable = true

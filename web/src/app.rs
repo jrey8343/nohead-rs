@@ -5,6 +5,7 @@ use tracing::{debug, info};
 use axum::{Router, serve};
 use color_eyre::Result;
 use tokio::{
+    net::TcpListener,
     signal,
     task::{AbortHandle, JoinHandle},
 };
@@ -42,13 +43,12 @@ impl App {
     // Serves the application on the configured
     // ip and port.
     async fn serve(app: App) -> Result<()> {
-        let listener = tokio::net::TcpListener::bind(&format!(
-            "{}:{}",
-            app.app_state.config.server.ip, app.app_state.config.server.port
-        ))
-        .await?;
+        let listener = TcpListener::bind(&app.app_state.config.server.addr()).await?;
 
-        debug!("listening on {}", app.app_state.config.server.addr());
+        debug!(
+            "listening on {}:{}",
+            app.app_state.config.server.host, app.app_state.config.server.port
+        );
 
         serve(listener, app.router)
             .with_graceful_shutdown(shutdown_signal(app.deletion_task.abort_handle()))

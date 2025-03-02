@@ -34,6 +34,9 @@ pub struct ServerConfig {
 
     /// The ip to bind to, e.g. 127.0.0.1 or ::1
     pub ip: IpAddr,
+
+    /// The host to bind to, e.g. "localhost"
+    pub host: String,
 }
 
 impl Default for ServerConfig {
@@ -41,6 +44,7 @@ impl Default for ServerConfig {
         Self {
             ip: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
             port: 3000,
+            host: "http://localhost".to_string(),
         }
     }
 }
