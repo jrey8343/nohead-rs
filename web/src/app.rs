@@ -1,8 +1,6 @@
-use std::sync::Arc;
-
 use apalis::prelude::*;
-use nohead_rs_config::{Config, Environment};
-use nohead_rs_mailer::{EmailClient, EmailPayload};
+use nohead_rs_config::Environment;
+use nohead_rs_mailer::EmailPayload;
 use tower_sessions::session_store;
 use tracing::{debug, info};
 
@@ -15,7 +13,7 @@ use tokio::{
 };
 
 use crate::{
-    error::Error, middlewares::auth::AuthSessionManager, router::init_router, state::AppState,
+    jobs, middlewares::auth::AuthSessionManager, router::init_router, state::AppState,
     tracing::Tracing,
 };
 
@@ -24,12 +22,6 @@ pub struct App {
     pub app_state: AppState,
     pub deletion_task: JoinHandle<Result<(), session_store::Error>>,
     pub worker_monitor_task: JoinHandle<Result<(), std::io::Error>>,
-}
-
-async fn send_email(job: EmailPayload, app_state: Data<AppState>) -> Result<(), Error> {
-    app_state.email_client.send_email(job).await?;
-
-    Ok(())
 }
 
 impl App {
@@ -44,10 +36,13 @@ impl App {
         } = AuthSessionManager::new(&app_state);
         //
         // Background job worker
-        let worker_storage = apalis_sql::sqlite::SqliteStorage::new(app_state.db_pool.clone());
-        let router = init_router(&app_state, auth_layer, worker_storage.clone());
+        let storage = apalis_sql::sqlite::SqliteStorage::new(app_state.db_pool.clone());
 
-        let app_state_cloned = app_state.clone();
+        // Initialize the router
+        let router = init_router(&app_state, auth_layer, storage.clone());
+
+        let app_state_cloned = app_state.clone(); // Must be cloned to be moved into the worker
+        // task
         let worker_monitor_task = tokio::task::spawn(async move {
             Monitor::new()
                 .register({
@@ -55,8 +50,8 @@ impl App {
                         .concurrency(2)
                         .data(app_state_cloned)
                         .enable_tracing()
-                        .backend(worker_storage.clone())
-                        .build_fn(send_email)
+                        .backend(storage.clone())
+                        .build_fn(jobs::send_email)
                 })
                 .run()
                 .await

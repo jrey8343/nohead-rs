@@ -22,6 +22,7 @@ use crate::{
     },
     middlewares::auth::AuthBackend,
     state::AppState,
+    worker::WorkerController,
 };
 
 pub fn init_router<T>(
@@ -46,6 +47,7 @@ where
         .merge(LogoutController::router())
         .merge(RegisterController::router())
         .merge(RegisterConfirmController::router())
+        .merge(WorkerController::router())
         .merge(PingController::router())
         .nest_service("/static", static_assets)
         .with_state(app_state.clone())

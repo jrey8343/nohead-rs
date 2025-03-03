@@ -18,3 +18,6 @@ path = "app/web/static"
 base_url = "https://api.resend.com"
 sender = "dev@notebar.io"
 timeout = 2000
+
+[worker]
+admin = "admin@nohead-rs.io"

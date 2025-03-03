@@ -33,7 +33,7 @@ impl RegisterController {
     pub async fn register(
         flash: Flash,
         State(app_state): State<AppState>,
-        Extension(mut worker): Extension<SqliteStorage<EmailPayload>>,
+        Extension(mut storage): Extension<SqliteStorage<EmailPayload>>,
         Form(form): Form<RegisterUser>,
     ) -> Result<(Flash, Redirect), Error> {
         let mut tx = transaction(&app_state.db_pool).await?;
@@ -44,7 +44,7 @@ impl RegisterController {
             .map_err(|e| Error::Database(nohead_rs_db::Error::DatabaseError(e)))?;
 
         // Send the confirmation email in a background job
-        worker
+        storage
             .push(AuthMailer::send_confirmation(
                 &app_state.email_client,
                 &app_state.config,

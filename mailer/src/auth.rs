@@ -1,6 +1,6 @@
 use nohead_rs_config::Config;
 
-use crate::{EmailClient, EmailPayload, Error};
+use crate::{EmailClient, EmailPayload};
 
 pub struct AuthMailer;
 
