@@ -32,7 +32,11 @@ pub enum Error {
     /// Return `500 Internal Server Error` on a mailer error.
     #[error("an error occured while sending an email")]
     Mailer(#[from] nohead_rs_mailer::Error),
-
+    /// An error occured while interacting with worker storage.
+    ///
+    /// Return `500 Internal Server Error` on a worker storage error.
+    #[error("error interacting with worker storage")]
+    Worker(#[from] nohead_rs_worker::Error),
     /// Enumerate any possible app arrors here.
     ///
     /// Return `500 Internal Server Error` on a `eyre::Error`.
@@ -79,6 +83,9 @@ impl Error {
             Error::Mailer(nohead_rs_mailer::Error::Validation(_)) => {
                 StatusCode::UNPROCESSABLE_ENTITY
             }
+
+            // Worker storage error
+            Error::Worker(_) => StatusCode::INTERNAL_SERVER_ERROR,
 
             // Unexpected error
             Error::Unexpected(_) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -130,6 +137,10 @@ impl IntoResponse for Error {
             }
             Error::Mailer(nohead_rs_mailer::Error::Validation(ref err)) => {
                 error!("invalid inputs to mailer: {:?}", err);
+            }
+
+            Error::Worker(ref err) => {
+                error!("an error occured while interacting with worker: {:?}", err);
             }
 
             Error::Unexpected(ref err) => {

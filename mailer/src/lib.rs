@@ -4,10 +4,10 @@ use core::time;
 
 use nohead_rs_config::MailerConfig;
 use reqwest::Client;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 
-#[derive(Serialize, Validate)]
+#[derive(Serialize, Deserialize, Validate)]
 pub struct EmailPayload {
     #[validate(email(message = "must be a valid email address"))]
     from: String,

@@ -1,5 +1,5 @@
 [workspace]
-members = ['web', 'db', 'config', "mailer"]
+members = ['web', 'db', 'config', "mailer", "worker"]
 resolver = '2'
 
 [profile.dev]

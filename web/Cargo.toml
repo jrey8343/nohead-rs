@@ -10,6 +10,7 @@ doctest = false
 nohead-rs_config = { path = "../config" }
 nohead-rs_db = { path = "../db" }
 nohead-rs_mailer = { path = "../mailer" }
+nohead-rs_worker = { path = "../worker" }
 
 rinja = "0.3.5"
 axum = { version = "0.8.1", features = ["tracing", "macros"] }

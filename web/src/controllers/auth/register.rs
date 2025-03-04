@@ -1,16 +1,19 @@
-use axum::Router;
-use axum::extract::State;
-use axum::routing::get;
-use axum::{Form, response::Redirect};
-use nohead_rs_db::entities::register_token::RegisterToken;
-use nohead_rs_db::entities::user::{RegisterUser, User};
-use nohead_rs_db::transaction;
-use nohead_rs_mailer::auth::AuthMailer;
-
-use crate::error::Error;
-use crate::middlewares::flash::{Flash, IncomingFlashes};
-use crate::state::AppState;
-use crate::views::auth::register::RegisterView;
+use crate::{
+    error::Error,
+    middlewares::flash::{Flash, IncomingFlashes},
+    state::AppState,
+    views::auth::register::RegisterView,
+};
+use axum::{Extension, Form, Router, extract::State, response::Redirect, routing::get};
+use nohead_rs_db::{
+    entities::{
+        register_token::RegisterToken,
+        user::{RegisterUser, User},
+    },
+    transaction,
+};
+use nohead_rs_mailer::{EmailPayload, auth::AuthMailer};
+use nohead_rs_worker::{Storage, WorkerStorage};
 
 pub struct RegisterController;
 
@@ -29,6 +32,7 @@ impl RegisterController {
     pub async fn register(
         flash: Flash,
         State(app_state): State<AppState>,
+        Extension(mut jobs): Extension<WorkerStorage<EmailPayload>>,
         Form(form): Form<RegisterUser>,
     ) -> Result<(Flash, Redirect), Error> {
         let mut tx = transaction(&app_state.db_pool).await?;
@@ -38,21 +42,19 @@ impl RegisterController {
             .await
             .map_err(|e| Error::Database(nohead_rs_db::Error::DatabaseError(e)))?;
 
-        // Send the confirmation email
-        tokio::spawn(async move {
-            AuthMailer::send_confirmation(
-                &app_state.config,
-                &app_state.email_client,
-                &user.email,
-                &register_token.register_token,
-            )
-            .await
-            .map_err(|e| {
-                tracing::error!("failed to send confirmation email: {:?}", e);
-            })
-            .ok();
-        });
-        //
+        // Send the confirmation email in a background job
+        jobs.push(AuthMailer::send_confirmation(
+            &app_state.email_client,
+            &app_state.config,
+            &user.email,
+            &register_token.register_token,
+        ))
+        .await
+        .map_err(|e| {
+            tracing::error!("failed to send confirmation email: {:?}", e);
+        })
+        .ok();
+
         // Redirect to the confirmation page
         Ok((
             flash.info("please check your email for the confirmation code"),
