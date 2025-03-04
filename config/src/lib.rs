@@ -26,7 +26,6 @@ pub struct Config {
     pub tracing: TracingConfig,
     pub static_assets: StaticAssetsConfig,
     pub mailer: MailerConfig,
-    pub worker: WorkerConfig,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
@@ -99,11 +98,6 @@ pub struct MailerConfig {
     pub base_url: String,
     pub sender: String,
     pub timeout: u64,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct WorkerConfig {
-    pub admin: String,
 }
 
 /// Loads the application configuration for a particular environment.
