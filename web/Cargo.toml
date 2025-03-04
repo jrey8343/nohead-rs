@@ -10,6 +10,7 @@ doctest = false
 nohead-rs_config = { path = "../config" }
 nohead-rs_db = { path = "../db" }
 nohead-rs_mailer = { path = "../mailer" }
+nohead-rs_worker = { path = "../worker" }
 
 rinja = "0.3.5"
 axum = { version = "0.8.1", features = ["tracing", "macros"] }
@@ -33,8 +34,6 @@ axum-login = "0.17.0"
 tower-sessions = { version = "0.14.0", features = ["signed"] }
 tower-sessions-sqlx-store = { version = "0.15.0", features = ["sqlite"] }
 password-auth = "1.0.0"
-apalis = { version = "0.6.4", features = ["limit"] }
-apalis-sql = { version = "0.6.4", features = ["sqlite", "tokio-comp"] }
 
 [dev-dependencies]
 nohead-rs_db = { path = "../db", features = ['test-helpers'] }

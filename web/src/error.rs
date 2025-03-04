@@ -36,7 +36,7 @@ pub enum Error {
     ///
     /// Return `500 Internal Server Error` on a worker storage error.
     #[error("error interacting with worker storage")]
-    WorkerStorage(#[from] apalis_sql::SqlError),
+    Worker(#[from] nohead_rs_worker::Error),
     /// Enumerate any possible app arrors here.
     ///
     /// Return `500 Internal Server Error` on a `eyre::Error`.
@@ -85,7 +85,7 @@ impl Error {
             }
 
             // Worker storage error
-            Error::WorkerStorage(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::Worker(_) => StatusCode::INTERNAL_SERVER_ERROR,
 
             // Unexpected error
             Error::Unexpected(_) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -139,11 +139,8 @@ impl IntoResponse for Error {
                 error!("invalid inputs to mailer: {:?}", err);
             }
 
-            Error::WorkerStorage(ref err) => {
-                error!(
-                    "an error occured while interacting with worker storage: {:?}",
-                    err
-                );
+            Error::Worker(ref err) => {
+                error!("an error occured while interacting with worker: {:?}", err);
             }
 
             Error::Unexpected(ref err) => {

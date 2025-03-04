@@ -1,0 +1,18 @@
+[package]
+name = "nohead-rs_worker"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nohead-rs_config = { path = "../config" }
+nohead-rs_db = { path = "../db" }
+nohead-rs_mailer = { path = "../mailer" }
+
+apalis = { version = "0.6.4", features = ["limit"] }
+apalis-sql = { version = "0.6.4", features = ["sqlite", "tokio-comp"] }
+tokio = { version = "1.43.0", features = [
+  "macros",
+  "rt-multi-thread",
+  "signal",
+] }
+thiserror = "2.0.12"

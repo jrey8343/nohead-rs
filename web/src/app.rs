@@ -1,6 +1,5 @@
-use apalis::prelude::*;
 use nohead_rs_config::Environment;
-use nohead_rs_mailer::EmailPayload;
+use nohead_rs_worker::Worker;
 use tower_sessions::session_store;
 use tracing::{debug, info};
 
@@ -13,8 +12,7 @@ use tokio::{
 };
 
 use crate::{
-    jobs, middlewares::auth::AuthSessionManager, router::init_router, state::AppState,
-    tracing::Tracing,
+    middlewares::auth::AuthSessionManager, router::init_router, state::AppState, tracing::Tracing,
 };
 
 pub struct App {
@@ -34,36 +32,18 @@ impl App {
             deletion_task,
             auth_layer,
         } = AuthSessionManager::new(&app_state);
-        //
-        // Background job worker
-        let storage = apalis_sql::sqlite::SqliteStorage::new(app_state.db_pool.clone());
+
+        // Initialize the background worker
+        let worker = Worker::new(&app_state.db_pool, app_state.email_client.clone());
 
         // Initialize the router
-        let router = init_router(&app_state, auth_layer, storage.clone());
-
-        let app_state_cloned = app_state.clone(); // Must be cloned to be moved into the worker
-        // task
-        let worker_monitor_task = tokio::task::spawn(async move {
-            Monitor::new()
-                .register({
-                    WorkerBuilder::new("email-worker")
-                        .concurrency(2)
-                        .data(app_state_cloned)
-                        .enable_tracing()
-                        .backend(storage.clone())
-                        .build_fn(jobs::send_email)
-                })
-                .run()
-                .await
-                .unwrap();
-            Ok::<(), std::io::Error>(())
-        });
+        let router = init_router(&app_state, auth_layer, worker.storage);
 
         Ok(Self {
             router,
             app_state,
             deletion_task,
-            worker_monitor_task,
+            worker_monitor_task: worker.monitor_task,
         })
     }
 

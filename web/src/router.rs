@@ -1,9 +1,9 @@
 use std::{path::Path, time::Duration};
 
-use apalis_sql::sqlite::SqliteStorage;
 use axum::{Extension, Router, routing::get};
 use axum_login::{AuthManagerLayer, login_required};
 use nohead_rs_db::DeserializeOwned;
+use nohead_rs_worker::WorkerStorage;
 use serde::Serialize;
 use tower::ServiceBuilder;
 use tower_http::{services::ServeDir, timeout::TimeoutLayer, trace::TraceLayer};
@@ -22,13 +22,12 @@ use crate::{
     },
     middlewares::auth::AuthBackend,
     state::AppState,
-    worker::WorkerController,
 };
 
 pub fn init_router<T>(
     app_state: &AppState,
     auth_layer: AuthManagerLayer<AuthBackend, SqliteStore, tower_sessions::service::SignedCookie>,
-    worker_layer: SqliteStorage<T>,
+    worker_layer: WorkerStorage<T>,
 ) -> Router
 where
     T: 'static + Serialize + DeserializeOwned + Send + Sync + Unpin,
@@ -47,7 +46,6 @@ where
         .merge(LogoutController::router())
         .merge(RegisterController::router())
         .merge(RegisterConfirmController::router())
-        .merge(WorkerController::router())
         .merge(PingController::router())
         .nest_service("/static", static_assets)
         .with_state(app_state.clone())
