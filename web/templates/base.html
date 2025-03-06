@@ -11,12 +11,10 @@
         </title>
         {% block head %}{% endblock %}
         <script src="/static/js/htmx.min.js"></script>
-        <!-- <script src="/assets/static/alpine.min.js" -->
-        <!-- defer>
-        </script> -->
-        <link rel="stylesheet" href="https://unpkg.com/missing.css@1.1.3" />
+        <script src="/static/js/alpine.min.js" defer></script>
+        <link rel="stylesheet" href="/static/css/output.css" />
     </head>
-    <body hx-swap="outerHTML">
+    <body class="bg-red-500" hx-swap="outerHTML">
         <nav>
             <a href="/">Home</a>
             <a href="/todos">Todos</a>
