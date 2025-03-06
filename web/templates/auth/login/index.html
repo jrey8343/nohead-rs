@@ -12,6 +12,6 @@
             <input type="password" name="password" required />
         </label>
         {% if let Some(next) = next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
-        <button type="submit">Login</button>
+        <button type="submit" class="[ button ]">Login</button>
     </form>
 {% endblock %}

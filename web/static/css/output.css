@@ -42,6 +42,7 @@
     --color-ink-1: var(--color-brown-9);
     --color-ink-2: var(--color-brown-8);
     --color-brand: var(--color-brown-4);
+    --color-link: var(--color-brown-9);
     --spacing-2xs: clamp(0.5625rem, 0.5408rem + 0.1087vw, 0.625rem);
     --spacing-s-m: clamp(1.125rem, 0.8641rem + 1.3043vw, 1.875rem);
     --spacing-gutter: var(--spacing-s-m);
@@ -141,7 +142,7 @@
     }
   }
   :where(a[href]) {
-    color: var(--link);
+    color: var(--color-link);
   }
   :where(blockquote) {
     letter-spacing: var(--tracking-loose);
@@ -175,7 +176,7 @@
     outline-offset: 5px;
   }
   :where(textarea, select, input:not([type=button], [type=submit], [type=reset])) {
-    background-color: var(--color-surface-2);
+    background-color: var(--color-surface-1);
     border-radius: var(--radius-2);
     padding: var(--spacing-2xs);
     border: none;
