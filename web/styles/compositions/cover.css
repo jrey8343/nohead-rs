@@ -1,0 +1,47 @@
+@layer compositions {
+    .cover {
+        display: flex;
+        flex-direction: column;
+        padding: var(--cover-padding, var(--gutter));
+        min-block-size: var(--cover-height, 100vh);
+
+        &>* {
+            margin-block: var(--cover-gutter, var(--gutter));
+        }
+
+        &> :first-child:not(h1) {
+            margin-block-start: 0;
+        }
+
+        &> :last-child:not(h1) {
+            margin-block-end: 0;
+        }
+
+        &>h1 {
+            margin-block: auto;
+        }
+    }
+
+    .cover[data-centered] {
+
+        /* Override default h1 styling if data attribute is provided */
+        &>h1 {
+            margin-block: var(--cover-gutter, var(--gutter));
+            /* Reset to default spacing */
+        }
+    }
+
+    .cover[data-centered='h2'] {
+        &> :first-child:not(h2) {
+            margin-block-start: 0;
+        }
+
+        &> :last-child:not(h2) {
+            margin-block-end: 0;
+        }
+
+        &>h2 {
+            margin-block: auto;
+        }
+    }
+}

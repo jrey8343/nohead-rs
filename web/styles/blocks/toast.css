@@ -1,0 +1,63 @@
+@layer blocks {
+    .toast {
+        --toast-container-top: auto;
+        --toast-container-bottom: var(--gutter);
+        --toast-container-stack-space: var(--space-2xs);
+        --toast-button-justify: flex-end;
+        --toast-button-gap: var(--space-3xs);
+        --stack-space: var(--toast-container-stack-space);
+        bottom: var(--toast-container-bottom);
+        border: none;
+        background: none;
+    }
+
+    .toast__content {
+        --toast-content-space: var(--space-2xs);
+        --toast-content-max-width: 30ch;
+        --toast-content-color: var(--color-surface-1);
+        --toast-content-bg: var(--color-ink-2);
+        --toast-content-radius: var(--radius-2);
+        --toast-content-shadow: var(--shadow-6);
+        --box-space: var(--toast-content-space);
+        display: flex;
+        align-items: baseline;
+        gap: var(--toast-content-space);
+        max-width: var(--toast-content-max-width);
+        opacity: 0;
+        color: var(--toast-content-color);
+        background-color: var(--toast-content-bg);
+        border-radius: var(--toast-content-radius);
+        box-shadow: var(--toast-content-shadow);
+        transform: translateY(100%);
+        animation: slideUp 0.5s var(--ease-elastic-in-3) calc(var(--toast-content-index, 0) * 0.2s) forwards, slideOut 0.5s var(--ease-elastic-out-3) calc(5s + var(--toast-content-index, 0) * 0.2s) forwards;
+    }
+
+    .toast__indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: var(--radius-6);
+    }
+
+    .toast__close {
+        --cluster-horizontal-alignment: var(--toast-button-justify);
+        --cluster-gap: var(--toast-button-gap);
+    }
+
+    .toast__indicator[data-toast-indicator-level="info"] {
+        background-color: var(--color-info-surface-4);
+    }
+
+    .toast__indicator[data-toast-indicator-level="success"] {
+        background-color: var(--color-success-surface-4);
+    }
+
+    .toast__indicator[data-toast-indicator-level="warning"] {
+        background-color: var(--color-warning-surface-4);
+    }
+
+    .toast__indicator[data-toast-indicator-level="error"] {
+        background-color: var(--color-error-surface-4);
+    }
+
+}

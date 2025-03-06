@@ -1,0 +1,17 @@
+    .center {
+        --_center-spacing: var(--center-space, var(--spacing-gutter));
+        --_center-max-size: var(--center-max-size, var(--size-content-large));
+        --_center-text-align: var(--center-text-align, center);
+        box-sizing: content-box;
+        padding-inline-start: var(--_center-spacing);
+        padding-inline-end: var(--_center-spacing);
+        max-inline-size: var(--_center-max-size);
+        text-align: var(--_center-text-align);
+        margin-inline: auto;
+    }
+    
+    .center[data-intrinsic] {
+        align-items: center;
+        flex-direction: column;
+        display: flex;
+    }

@@ -2,11 +2,13 @@ use std::{path::Path, time::Duration};
 
 use axum::{Extension, Router, routing::get};
 use axum_login::{AuthManagerLayer, login_required};
+use nohead_rs_config::Environment;
 use nohead_rs_db::DeserializeOwned;
 use nohead_rs_worker::WorkerStorage;
 use serde::Serialize;
 use tower::ServiceBuilder;
 use tower_http::{services::ServeDir, timeout::TimeoutLayer, trace::TraceLayer};
+use tower_livereload::LiveReloadLayer;
 use tower_sessions_sqlx_store::SqliteStore;
 
 use crate::{
@@ -34,7 +36,7 @@ where
 {
     let static_assets = ServeDir::new(Path::new(env!("CARGO_MANIFEST_DIR")).join("static"));
 
-    Router::new()
+    let mut router = Router::new()
         .route(
             "/protected",
             get(|| async { "you gotta be logged in to see me!" }),
@@ -56,5 +58,12 @@ where
             TimeoutLayer::new(Duration::from_secs(10)),
             auth_layer,
             Extension(worker_layer),
-        )))
+        )));
+
+    // enable live reload in development
+    if app_state.env == Environment::Development {
+        router = router.layer(LiveReloadLayer::new());
+    }
+
+    router
 }

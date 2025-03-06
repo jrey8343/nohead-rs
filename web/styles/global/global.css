@@ -1,0 +1,152 @@
+/* 
+  Global styles 
+  
+  Low-specificity, global styles that apply to the whole 
+  project: https://cube.fyi/css.html
+  */
+  :where(html) {
+    background-color: var(--color-surface-2);
+    color: var(--color-ink-1);
+    accent-color: var(--color-brand);
+    caret-color: var(--color-brand);
+    font-size: var(--text-base);
+    font-family: var(--font-base);
+    line-height: var(--leading-standard);
+  }
+
+  /* 📝 Typography */
+  :where(h1, h2, h3, h4, h5, h6) {
+    font-family: var(--font-heading);
+    font-weight: var(--font-bold);
+    letter-spacing: var(--kerning-tight);
+    line-height: var(--leading-fine);
+    text-wrap: var(--text-wrap-heading);
+  }
+
+  :where(h1) {
+    font-size: var(--text-heading-1);
+  }
+
+  :where(h2) {
+    font-size: var(--text-heading-2);
+  }
+
+  :where(h3) {
+    font-size: var(--text-heading-3);
+  }
+
+  :where(h4) {
+    font-size: var(--text-heading-4);
+  }
+
+  :where(p, ul, ol, dl, h6) {
+    font-size: var(--text-base);
+  }
+
+  :where(a, u, ins, abbr) {
+    text-decoration-color: transparent;
+    text-underline-offset: var(--text-underline-offset);
+    transition: text-decoration var(--transition-base);
+
+    &:hover {
+      text-decoration-color: inherit;
+      text-decoration: underline;
+    }
+
+    @supports (-moz-appearance: none) {
+      text-underline-offset: 2px;
+    }
+  }
+
+  :where(a[href]) {
+    color: var(--link);
+  }
+
+  :where(blockquote) {
+    letter-spacing: var(--tracking-loose);
+  }
+
+  :focus-visible {
+    outline-color: var(--color-brand)
+  }
+
+  :where(:not(dialog)) {
+    margin: 0
+  }
+
+  :where(:not(fieldset, progress, meter)) {
+    background-origin: border-box;
+    background-repeat: no-repeat;
+    border-style: solid;
+    border-width: 0
+  }
+
+  @media (prefers-reduced-motion:no-preference) {
+    :where(html) {
+      scroll-behavior: smooth
+    }
+  }
+
+  @media (prefers-reduced-motion:no-preference) {
+    :where(:focus-visible) {
+      transition: outline-offset 145ms var(--ease-2)
+    }
+
+    :where(:not(:active):focus-visible) {
+      transition-duration: .25s
+    }
+  }
+
+  :where(:not(:active):focus-visible) {
+    outline-offset: 5px
+  }
+
+  :where(textarea, select, input:not([type=button], [type=submit], [type=reset])) {
+    background-color: var(--color-surface-2);
+    border-radius: var(--radius-2);
+    padding: var(--spacing-2xs);
+    border: none;
+    padding: var(--spacing-2xs);
+    box-shadow: var(--shadow-inner-2);
+  }
+
+  :where(table) {
+    text-align: left;
+    border-collapse: collapse;
+  }
+
+  :where(tr, th, td) {
+    border: 2px solid var(--color-surface-4);
+  }
+
+  :where(th, caption) {
+    text-align: start;
+  }
+
+  :where(th:first-child) {
+    position: sticky;
+    inset-inline-start: 0;
+  }
+
+
+  :where(thead th:not(:first-child)) {
+    td {
+      text-align: end;
+    }
+  }
+
+  :where(thead, tfoot) {
+    border-block-end: 2px solid;
+    background: var(--color-surface-4);
+  }
+
+  :where(tbody tr:nth-child(even)) {
+    background: var(--color-surface-3);
+  }
+
+  :where(th,
+    td) {
+    border: 1px solid var(--color-surface-4);
+    padding: 0.25rem 0.75rem;
+  }
+

@@ -1,0 +1,44 @@
+@layer compositions {
+
+  /* 
+  LIMITER
+    A layout which uses subgrid to take nested
+    left-aligned and right-aligned regions and
+    align them to the grid's columns.
+    It gets the max width of the first column
+    based on the content.
+    Then the second column takes up the remaining
+    space.
+
+  USAGE EXAMPLES
+    A form with a left-aligned 
+    label and a right-aligned input will have
+    aligned labels and inputs.
+
+  CUSTOM PROPERTIES AND CONFIGURATION
+    --limiter-gap: The gap between grid items.
+    --limiter-horizontal-alignment: The alignment of the grid items.
+    --limiter-template-columns: The template columns of the grid. 
+      This can be altered for example to do a full width breakout
+*/
+  .limiter {
+    --limiter-gap: 1em;
+    --limiter-horizontal-alignment: space-between;
+    --limiter-template-columns: subgrid;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: var(--limiter-gap);
+  }
+
+  .limiter>* {
+    grid-column: span 2;
+    display: grid;
+    grid: inherit;
+    grid-template-columns: inherit;
+    /* Fallback */
+    grid-template-columns: var(--limiter-template-columns);
+    gap: inherit;
+    align-items: center;
+    justify-items: var(--limiter-horizontal-alignment);
+  }
+}

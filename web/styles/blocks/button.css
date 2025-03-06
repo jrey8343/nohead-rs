@@ -1,0 +1,77 @@
+    .button {
+        /* Configuration */
+        --button-padding: 0.7em 1.2em;
+        --button-gap: 0.5em;
+        --button-icon-size: 1em;
+        --button-bg: var(--color-ink-1);
+        --button-color: var(--color-surface-1);
+        --button-hover-bg: var(--color-ink-2);
+        --button-hover-color: var(--color-surface-1);
+        --button-border-width: 3px;
+        --button-border-style: solid;
+        --button-border-color: transparent;
+        --button-radius: var(--radius-2);
+        --button-shadow: var(--shadow-2);
+        --button-font-weight: var(--font-bold);
+        --button-tracking: var(--tracking-loose);
+        --button-leading: var(--leading-fine);
+
+        /* Layout and spacing */
+        display: inline-flex;
+        align-items: center;
+        gap: var(--button-gap);
+        padding: var(--button-padding);
+
+        /* Colors */
+        color: var(--button-color);
+        background-color: var(--button-bg);
+
+        /* Stroke and Radius*/
+        border-radius: var(--button-radius);
+        border-style: var(--button-border-style);
+        border-color: var(--button-border-color);
+        border-width: var(--button-border-width);
+        border-radius: var(--button-radius);
+
+        /* Shadow */
+        box-shadow: var(--button-shadow);
+
+        /* Typography */
+        text-decoration: none;
+        font-weight: var(--button-font-weight);
+        letter-spacing: var(--button-font-kerning);
+        line-height: var(--button-font-leading);
+
+        /* Interactive */
+        cursor: pointer;
+        transition: background-color var(--transition-base), color var(--transition-base);
+
+        &:hover {
+            background-color: var(--button-hover-bg);
+            color: var(--button-hover-color);
+        }
+    }
+
+    .button svg {
+        display: inline-block;
+        flex: none;
+        height: var(--button-icon-size, 1.2cap);
+        width: auto;
+        vertical-align: middle;
+    }
+
+    .button[data-button-variant="ghost"] {
+        --button-bg: transparent;
+        --button-color: var(--color-ink-1);
+        --button-hover-bg: var(--color-ink-1);
+        --button-hover-color: var(--color-surface-1);
+        --button-shadow: none;
+    }
+
+    .button[data-button-variant="soft"] {
+        --button-bg: var(--color-surface-3);
+        --button-color: var(--color-ink-2);
+        --button-hover-bg: var(--color-surface-4);
+        --button-hover-color: var(--color-ink-1);
+        --button-border-color: var(--color-surface-4);
+    }

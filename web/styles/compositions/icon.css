@@ -1,0 +1,15 @@
+@layer compositions {
+    .icon {
+        width: 1em;
+        height: 1em;
+    }
+
+    .with-icon {
+        display: inline-flex;
+        align-items: baseline;
+    }
+
+    .with-icon .icon {
+        margin-inline-end: 1rem;
+    }
+}

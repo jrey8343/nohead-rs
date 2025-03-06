@@ -1,0 +1,14 @@
+@layer blocks {
+    .navbar {
+        --cluster-horizontal-alignment: space-between;
+        --box-bg: transparent;
+    }
+
+    .navbar__links {
+        --cluster-horizontal-alignment: flex-start;
+    }
+
+    .navbar__buttons {
+        --cluster-gap: var(--space-2xs);
+    }
+}

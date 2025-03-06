@@ -1,0 +1,29 @@
+  /*
+  BOX
+  More info: https://every-layout.dev/layouts/box/
+  The basic, and highly prolific, use case for a Box is to group and demarcate some content. 
+  This content may appear as a message or 'note' among other, textual flow content, 
+  as one card in a grid of many, or as the inner wrapper of a positioned dialog element.
+  
+  The different ways boxes can be used. In among text, as cells in a grid, 
+  and nested inside each other.
+  You can also combine just boxes to make some useful compositions. 
+  A Box with a 'header' element can be made from two sibling boxes, nested inside another, parent Box.
+  
+  CUSTOM PROPERTIES AND CONFIGURATION
+  --box-bg (var(--color-global-bg)): The background color of the box
+  --box-text (var(--color-global-text)): The text color of the box
+  --box-border-width (0): The width of the border
+  --box-border-color (var(--color-surface-bg)): The color of the border
+  --box-space (var(--gutter)): The padding inside the box
+  */
+  .box {
+    background-color: var(--box-bg, var(--color-surface-1));
+    color: var(--box-text, var(--color-ink-1));
+    border: var(--box-border-width, 0) solid var(--box-border-color, var(--color-surface-1));
+    padding: var(--box-spacing, var(--spacing-gutter));
+  }
+
+  .box * {
+    color: inherit;
+  }

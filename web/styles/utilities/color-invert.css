@@ -1,0 +1,8 @@
+@layer utilities {
+  /*
+  COLOR INVERT UTILITY
+  */
+  .color-invert {
+    filter: invert(1);
+  }
+}

@@ -14,14 +14,14 @@
         <script src="/static/js/alpine.min.js" defer></script>
         <link rel="stylesheet" href="/static/css/output.css" />
     </head>
-    <body class="bg-red-500" hx-swap="outerHTML">
+    <body class="bg-surface-4" hx-swap="outerHTML">
         <nav>
             <a href="/">Home</a>
             <a href="/todos">Todos</a>
             <a href="/auth/login">Login</a>
             <a href="/auth/register">Register</a>
             <form method="POST" action="/auth/logout">
-                <button>Logout</button>
+                <button class="[ button ]">Logout</button>
             </form>
         </nav>
         {% block content %}{% endblock %}

@@ -1,0 +1,16 @@
+@layer blocks {
+    .form {
+        max-width: 60ch;
+        margin-block-start: var(--gutter);
+        border-radius: var(--radius-4);
+        box-shadow: var(--shadow-3);
+    }
+
+    .form__header {
+        --limiter-template-columns: max-content;
+    }
+
+    .form__footer {
+        --limiter-horizontal-alignment: end;
+    }
+}

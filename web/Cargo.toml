@@ -34,6 +34,7 @@ axum-login = "0.17.0"
 tower-sessions = { version = "0.14.0", features = ["signed"] }
 tower-sessions-sqlx-store = { version = "0.15.0", features = ["sqlite"] }
 password-auth = "1.0.0"
+tower-livereload = "0.9.6"
 
 [dev-dependencies]
 nohead-rs_db = { path = "../db", features = ['test-helpers'] }

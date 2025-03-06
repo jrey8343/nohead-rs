@@ -1,0 +1,5 @@
+@layer utilities {
+    .slide-out {
+        animation: slideOut 0.5s var(--ease-elastic-out-3) forwards;
+    }
+}

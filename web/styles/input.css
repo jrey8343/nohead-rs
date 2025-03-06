@@ -1,1 +1,175 @@
-@import "tailwindcss";
+@layer variables, theme, base, global, compositions, components, utilities;
+
+@import "../styles/global/variables.css" layer(variables);
+@import "tailwindcss/theme.css" layer(theme);
+@import "../styles/global/reset.css" layer(base);
+@import "../styles/global/global.css" layer(global);
+@import "../styles/compositions/box.css" layer(compositions);
+@import "../styles/blocks/button.css" layer(components);
+
+
+@theme {
+    --text-step--2: clamp(0.7813rem, 0.7747rem + 0.0326vw, 0.8rem);
+    --text-step--1: clamp(0.9375rem, 0.9158rem + 0.1087vw, 1rem);
+    --text-step-0: clamp(1.125rem, 1.0815rem + 0.2174vw, 1.25rem);
+    --text-step-1: clamp(1.35rem, 1.2761rem + 0.3696vw, 1.5625rem);
+    --text-step-2: clamp(1.62rem, 1.5041rem + 0.5793vw, 1.9531rem);
+    --text-step-3: clamp(1.944rem, 1.771rem + 0.8651vw, 2.4414rem);
+    --text-step-4: clamp(2.3328rem, 2.0827rem + 1.2504vw, 3.0518rem);
+    --text-step-5: clamp(2.7994rem, 2.4462rem + 1.7658vw, 3.8147rem);
+
+    /* Font fammily */
+    --font-sans: Inter, Roboto, Helvetica Neue, Arial Nova, Nimbus Sans, Arial, sans-serif;
+    --font-serif: Iowan Old Style, Palatino Linotype, URW Palladio L, P052, serif;
+    --font-mono: Dank Mono, Operator Mono, Inconsolata, Fira Mono, ui-monospace, SF Mono,Monaco, Droid Sans Mono, Source Code Pro, Cascadia Code,Menlo, Consolas, DejaVu Sans Mono, monospace;
+
+    /* Named fonts */
+    --font-heading: var(--font-serif);
+    --font-base: var(--font-sans);
+
+    /* Named text sizes */
+    --text-base: var(--text-step-0);
+    --text-lede: var(--text-step--1);
+    --text-meta: var(--text-step--2);
+    --text-heading-1: var(--text-step-5);
+    --text-heading-2: var(--text-step-4);
+    --text-heading-3: var(--text-step-3);
+    --text-heading-4: var(--text-step-2);
+
+    /* Kerning */
+    --tracking-base: normal;
+    --tracking-tight: -0.04ch;
+    --tracking-loose: 0.1ch;
+
+    /* Leading */
+    --leading-flat: 1;
+    --leading-fine: 1.15;
+    --leading-standard: 1.5;
+    --leading-loose: 1.7;
+
+    /* Color Palette */
+    --color-brown-0: #faf4eb;
+    --color-brown-1: #ede0d1;
+    --color-brown-2: #e0cab7;
+    --color-brown-3: #d3b79e;
+    --color-brown-4: #c5a285;
+    --color-brown-5: #b78f6d;
+    --color-brown-6: #a87c56;
+    --color-brown-7: #956b47;
+    --color-brown-8: #825b3a;
+    --color-brown-9: #6f4b2d;
+    --color-brown-10: #5e3a21;
+    --color-brown-11: #4e2b15;
+    --color-brown-12: #422412;
+
+    /* Named colors */
+    --color-surface-1: var(--color-brown-0);
+    --color-surface-2: var(--color-brown-1);
+    --color-surface-3: var(--color-brown-2);
+    --color-surface-4: var(--color-brown-3);
+    --color-ink-1: var(--color-brown-9);
+    --color-ink-2: var(--color-brown-8);
+    --color-brand: var(--color-brown-4);
+    --color-link: var(--color-brown-9);
+    --color-link-visited: var(--color-brown-9);
+    --color-border: var(--color-ink-2);
+
+    /* Spacing */
+    --spacing-3xs: clamp(0.3125rem, 0.3125rem + 0vw, 0.3125rem);
+    --spacing-2xs: clamp(0.5625rem, 0.5408rem + 0.1087vw, 0.625rem);
+    --spacing-xs: clamp(0.875rem, 0.8533rem + 0.1087vw, 0.9375rem);
+    --spacing-s: clamp(1.125rem, 1.0815rem + 0.2174vw, 1.25rem);
+    --spacing-m: clamp(1.6875rem, 1.6223rem + 0.3261vw, 1.875rem);
+    --spacing-l: clamp(2.25rem, 2.163rem + 0.4348vw, 2.5rem);
+    --spacing-xl: clamp(3.375rem, 3.2446rem + 0.6522vw, 3.75rem);
+    --spacing-2xl: clamp(4.5rem, 4.3261rem + 0.8696vw, 5rem);
+    --spacing-3xl: clamp(6.75rem, 6.4891rem + 1.3043vw, 7.5rem);
+    /* One-up pairs */
+    --spacing-3xs-2xs: clamp(0.3125rem, 0.2038rem + 0.5435vw, 0.625rem);
+    --spacing-2xs-xs: clamp(0.5625rem, 0.4321rem + 0.6522vw, 0.9375rem);
+    --spacing-xs-s: clamp(0.875rem, 0.7446rem + 0.6522vw, 1.25rem);
+    --spacing-s-m: clamp(1.125rem, 0.8641rem + 1.3043vw, 1.875rem);
+    --spacing-m-l: clamp(1.6875rem, 1.4049rem + 1.413vw, 2.5rem);
+    --spacing-l-xl: clamp(2.25rem, 1.7283rem + 2.6087vw, 3.75rem);
+    --spacing-xl-2xl: clamp(3.375rem, 2.8098rem + 2.8261vw, 5rem);
+    --spacing-2xl-3xl: clamp(4.5rem, 3.4565rem + 5.2174vw, 7.5rem);
+    /* Custom pairs */
+    --spacing-s-l: clamp(1.125rem, 0.6467rem + 2.3913vw, 2.5rem);
+    /* Named spacing */
+    --spacing-gutter: var(--spacing-s-m);
+    --spacing-region: var(--spacing-s-m);
+    --spacing-flow: var(--spacing-s-m);
+
+    /* Borders */
+    --radius-1: 2px;
+    --radius-2: 5px;
+    --radius-3: 1rem;
+    --radius-4: 2rem;
+    --radius-5: 4rem;
+    --radius-6: 8rem;
+    --radius-conditional-1: clamp(0px, calc(100vw - 100%) * 1e5, var(--radius-1));
+    --radius-conditional-2: clamp(0px, calc(100vw - 100%) * 1e5, var(--radius-2));
+    --radius-conditional-3: clamp(0px, calc(100vw - 100%) * 1e5, var(--radius-3));
+    --radius-conditional-4: clamp(0px, calc(100vw - 100%) * 1e5, var(--radius-4));
+    --radius-conditional-5: clamp(0px, calc(100vw - 100%) * 1e5, var(--radius-5));
+    --radius-conditional-6: clamp(0px, calc(100vw - 100%) * 1e5, var(--radius-6));
+
+    /* Shadow */
+
+    --shadow-1: 0 1px 2px -1px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 9%));
+    --shadow-2: 
+      0 3px 5px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 3%)),
+      0 7px 14px -5px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 5%));
+    --shadow-3: 
+      0 -1px 3px 0 hsl(var(--shadow-color) / calc(var(--shadow-strength) + 2%)),
+      0 1px 2px -5px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 2%)),
+      0 2px 5px -5px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 4%)),
+      0 4px 12px -5px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 5%)),
+      0 12px 15px -5px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 7%));
+    --shadow-4: 
+      0 -2px 5px 0 hsl(var(--shadow-color) / calc(var(--shadow-strength) + 2%)),
+      0 1px 1px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 3%)),
+      0 2px 2px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 3%)),
+      0 5px 5px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 4%)),
+      0 9px 9px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 5%)),
+      0 16px 16px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 6%));
+    --shadow-5: 
+      0 -1px 2px 0 hsl(var(--shadow-color) / calc(var(--shadow-strength) + 2%)),
+      0 2px 1px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 3%)),
+      0 5px 5px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 3%)),
+      0 10px 10px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 4%)),
+      0 20px 20px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 5%)),
+      0 40px 40px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 7%));
+    --shadow-6: 
+      0 -1px 2px 0 hsl(var(--shadow-color) / calc(var(--shadow-strength) + 2%)),
+      0 3px 2px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 3%)),
+      0 7px 5px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 3%)),
+      0 12px 10px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 4%)),
+      0 22px 18px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 5%)),
+      0 41px 33px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 6%)),
+      0 100px 80px -2px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 7%));
+    --inner-shadow-0: inset 0 0 0 1px hsl(var(--shadow-color) / calc(var(--shadow-strength) + 9%));
+    --inner-shadow-1: inset 0 1px 2px 0 hsl(var(--shadow-color) / calc(var(--shadow-strength) + 9%)), var(--inner-shadow-highlight);
+    --inner-shadow-2: inset 0 1px 4px 0 hsl(var(--shadow-color) / calc(var(--shadow-strength) + 9%)), var(--inner-shadow-highlight);
+    --inner-shadow-3: inset 0 2px 8px 0 hsl(var(--shadow-color) / calc(var(--shadow-strength) + 9%)), var(--inner-shadow-highlight);
+    --inner-shadow-4: inset 0 2px 14px 0 hsl(var(--shadow-color) / calc(var(--shadow-strength) + 9%)), var(--inner-shadow-highlight);
+
+    /* Easings */
+    --ease-1: cubic-bezier(.25, 0, .5, 1);
+    --ease-1: cubic-bezier(.25, 0, .5, 1);
+    --ease-2: cubic-bezier(.25, 0, .4, 1);
+    --ease-3: cubic-bezier(.25, 0, .3, 1);
+    --ease-4: cubic-bezier(.25, 0, .2, 1);
+    --ease-5: cubic-bezier(.25, 0, .1, 1);
+    --ease-bounce-1: linear(
+      0, 0.004, 0.016, 0.035, 0.063, 0.098, 0.141, 0.191, 0.25, 0.316, 0.391 36.8%,
+      0.563, 0.766, 1 58.8%, 0.946, 0.908 69.1%, 0.895, 0.885, 0.879, 0.878, 0.879,
+      0.885, 0.895, 0.908 89.7%, 0.946, 1
+    );
+
+    /* Animate */
+    --animate-base: 250ms var(--ease-1);
+    --animate-movement: 200ms linear;
+    --animate-fade: 300ms var(--ease-1);
+    --animate-bounce: 500ms var(--ease-bounce-1);
+   }
