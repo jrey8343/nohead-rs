@@ -2,7 +2,7 @@
 use fake::Dummy;
 
 use rand::Rng as _;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use sqlx::{Sqlite, prelude::FromRow, types::time::OffsetDateTime};
 use validator::Validate;
 
@@ -16,7 +16,7 @@ pub struct RegisterToken {
 }
 
 #[derive(Deserialize, Validate, Clone)]
-#[cfg_attr(feature = "test-helpers", derive(Serialize, Dummy))]
+#[cfg_attr(feature = "test-helpers", derive(serde::Serialize, Dummy))]
 pub struct RegisterTokenValidate {
     /// The register token must be exactly 6 characters long.
     #[cfg_attr(feature = "test-helpers", dummy(expr = "generate_register_token()"))]
@@ -50,9 +50,9 @@ impl RegisterToken {
         let rand_token = generate_register_token();
         let register_token = sqlx::query_as!(
             RegisterToken,
-            r#"INSERT into registration_tokens (register_token, user_id) values (
+            r#"INSERT INTO registration_tokens (register_token, user_id) VALUES (
                 $1, $2
-            ) returning *
+            ) RETURNING *
 
             "#,
             rand_token,

@@ -1,16 +1,21 @@
-use axum::extract::State;
-use axum::response::Redirect;
-use axum::routing::get;
-use axum::{Form, Router};
-use nohead_rs_db::entities::register_token::{RegisterToken, RegisterTokenValidate};
-use nohead_rs_db::entities::user::{User, UserStatus};
-use nohead_rs_db::transaction;
+use axum::{Form, Router, extract::State, response::Redirect, routing::get};
+use nohead_rs_db::{
+    entities::{
+        register_token::{RegisterToken, RegisterTokenValidate},
+        user::{User, UserStatus},
+    },
+    transaction,
+};
 
-use crate::error::Error;
-use crate::middlewares::auth::AuthSession;
-use crate::middlewares::flash::{Flash, IncomingFlashes};
-use crate::state::AppState;
-use crate::views::auth::register_confirm::RegisterConfirmView;
+use crate::{
+    error::Error,
+    middlewares::{
+        auth::AuthSession,
+        flash::{Flash, IncomingFlashes},
+    },
+    state::AppState,
+    views::auth::register_confirm::RegisterConfirmView,
+};
 
 pub struct RegisterConfirmController;
 
@@ -37,18 +42,18 @@ impl RegisterConfirmController {
         let user_id = RegisterToken::try_get_user_id_by_register_token(form, &mut *tx)
             .await?
             .ok_or_else(|| Error::InvalidRegisterToken)?;
-        // Update the user status to confirmed
+        // Update the user status to from pending to confirmed
         let user = User::update_status(user_id, UserStatus::Confirmed, &mut *tx).await?;
         // Commit the transaction
-        tx.commit()
-            .await
-            .map_err(|e| Error::Database(nohead_rs_db::Error::DatabaseError(e)))?;
+        tx.commit().await.map_err(|e| Error::Database(e.into()))?;
 
         // Create a session for the user
         auth_session
             .login(&user)
             .await
             .map_err(|e| Error::Unexpected(e.into()))?;
+        //FIX: Create a better error to allow user
+        //to retry
 
         Ok((
             flash.success("Welcome! You are now registered"),
