@@ -22,7 +22,8 @@ pub enum Error {
     Mutex,
     #[error(transparent)]
     Io(#[from] std::io::Error),
-
     #[error(transparent)]
     Path(#[from] std::path::StripPrefixError),
+    #[error(transparent)]
+    Rinja(#[from] rinja::Error), //FIX: Remove this
 }

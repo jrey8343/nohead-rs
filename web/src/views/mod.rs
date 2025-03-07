@@ -1,3 +1,5 @@
+use crate::error::Error;
+
 pub mod auth;
 pub mod home;
 pub mod todos;
@@ -37,7 +39,7 @@ pub mod todos;
 pub fn html<T: rinja::Template>(tmpl: T) -> axum::response::Response {
     axum::response::IntoResponse::into_response(
         tmpl.render()
-            .map_err(crate::error::Error::ViewEngine)
+            .map_err(|e| Error::ViewEngine(e.into()))
             .map(axum::response::Html),
     )
 }

@@ -81,7 +81,7 @@ impl View {
             // Watch the template directory for changes in debug mode
             if cfg!(debug_assertions) {
                 notifier.set_fast_reload(true);
-                notifier.watch_path(&templates_path, true);
+                notifier.watch_path(templates_path, true);
             }
             // Load in the templates from the specified directory
             env.set_loader(path_loader(templates_path));

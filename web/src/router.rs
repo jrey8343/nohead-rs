@@ -63,7 +63,7 @@ where
             Extension(worker_layer),
         )));
 
-    view_engine.after_routes(router.clone(), app_state)?;
+    let _ = view_engine.after_routes(router.clone(), app_state)?;
 
     // enable live reload in development
     if app_state.env == Environment::Development {
