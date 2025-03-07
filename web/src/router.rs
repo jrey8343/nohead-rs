@@ -22,6 +22,8 @@ use crate::{
         ping::PingController,
         todos::TodoController,
     },
+    error::Result,
+    initializers::view_engine::{self, engine::ViewEngineInitializer},
     middlewares::auth::AuthBackend,
     state::AppState,
 };
@@ -30,7 +32,8 @@ pub fn init_router<T>(
     app_state: &AppState,
     auth_layer: AuthManagerLayer<AuthBackend, SqliteStore, tower_sessions::service::SignedCookie>,
     worker_layer: WorkerStorage<T>,
-) -> Router
+    view_engine: ViewEngineInitializer,
+) -> Result<Router>
 where
     T: 'static + Serialize + DeserializeOwned + Send + Sync + Unpin,
 {
@@ -60,10 +63,12 @@ where
             Extension(worker_layer),
         )));
 
+    view_engine.after_routes(router.clone(), app_state)?;
+
     // enable live reload in development
     if app_state.env == Environment::Development {
         router = router.layer(LiveReloadLayer::new());
     }
 
-    router
+    Ok(router)
 }

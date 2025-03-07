@@ -25,6 +25,8 @@ pub struct Config {
     pub database: DatabaseConfig,
     pub tracing: TracingConfig,
     pub static_assets: StaticAssetsConfig,
+    pub templates: TemplatesConfig,
+    pub wasm_components: WasmComponentsConfig,
     pub mailer: MailerConfig,
 }
 
@@ -83,6 +85,18 @@ pub struct DatabaseConfig {
 #[cfg_attr(test, derive(PartialEq))]
 pub struct StaticAssetsConfig {
     pub precompressed: bool,
+    pub path: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct TemplatesConfig {
+    pub path: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[cfg_attr(test, derive(PartialEq))]
+pub struct WasmComponentsConfig {
     pub path: String,
 }
 

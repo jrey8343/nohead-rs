@@ -12,6 +12,7 @@ use tokio::{
 };
 
 use crate::{
+    initializers::view_engine::engine::ViewEngineInitializer,
     middlewares::auth::AuthSessionManager, router::init_router, state::AppState, tracing::Tracing,
 };
 
@@ -36,8 +37,12 @@ impl App {
         // Initialize the background worker
         let worker = Worker::new(&app_state.db_pool, app_state.email_client.clone());
 
+        // Initialize the view engine
+        let view_engine = ViewEngineInitializer::default();
+        view_engine.before_run(app_state.clone())?;
+
         // Initialize the router
-        let router = init_router(&app_state, auth_layer, worker.storage);
+        let router = init_router(&app_state, auth_layer, worker.storage, view_engine)?;
 
         Ok(Self {
             router,
@@ -112,6 +117,7 @@ impl App {
         Ok(())
     }
 }
+
 async fn shutdown_signal(task_handles: Vec<AbortHandle>) {
     let ctrl_c = async {
         signal::ctrl_c()

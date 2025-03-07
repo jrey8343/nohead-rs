@@ -14,6 +14,12 @@ uri = "sqlite://nohead_rs.db"
 precompressed = true
 path = "app/web/static"
 
+[templates]
+path = "templates"
+
+[wasm_components]
+path = "wasm"
+
 [mailer]
 base_url = "https://api.resend.com"
 sender = "dev@notebar.io"

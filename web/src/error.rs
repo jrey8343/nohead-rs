@@ -5,6 +5,10 @@ use axum::{
 use color_eyre::eyre;
 use tracing::error;
 
+use crate::initializers::view_engine;
+
+pub type Result<T, E = Error> = color_eyre::Result<T, E>;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Unauthenticated user
@@ -21,7 +25,7 @@ pub enum Error {
     ///
     /// Return `500 Internal Server Error` on a template rendering error.
     #[error("could not render template")]
-    Render(#[from] rinja::Error),
+    ViewEngine(#[from] view_engine::error::Error),
     /// An error occured while interacting with the database.
     ///
     /// Return `500 Internal Server Error` on a db error.
@@ -51,7 +55,7 @@ impl Error {
             Error::Unauthenticated | Error::InvalidRegisterToken => StatusCode::UNAUTHORIZED,
 
             // Template rendering error
-            Error::Render(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::ViewEngine(_) => StatusCode::INTERNAL_SERVER_ERROR,
 
             // Record not found
             Error::Database(nohead_rs_db::Error::NoRecordFound) => StatusCode::NOT_FOUND,
@@ -104,11 +108,12 @@ impl IntoResponse for Error {
                 // TODO: Return a not authenticated view here.
                 return (self.status_code(), "unauthenticated".to_string()).into_response();
             }
-            Error::Render(ref err) => {
+            Error::ViewEngine(ref err) => {
                 // TODO: Return a not found view here.
                 error!("an error occured while rendering a template: {:?}", err);
                 return (self.status_code(), err.to_string()).into_response();
             }
+
             Error::Database(nohead_rs_db::Error::NoRecordFound) => {
                 // TODO: Return a not found view here.
 
