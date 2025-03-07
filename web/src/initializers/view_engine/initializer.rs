@@ -18,6 +18,7 @@ impl ViewEngineInitializer {
         tokio::spawn(async move {
             // Create the watcher inside the task
             let mut watcher = notify::recommended_watcher(move |_| {
+                //FIX: Get css path from config
                 Command::new("npx @tailwind/cli")
                     .arg("-i")
                     .arg("../../../styles/input.css")

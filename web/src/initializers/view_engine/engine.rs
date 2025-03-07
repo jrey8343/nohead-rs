@@ -6,7 +6,7 @@ use serde::Serialize;
 use std::sync::Arc;
 use tower_livereload::{LiveReloadLayer, Reloader};
 
-use crate::error::Result;
+use super::error::Error as ViewEngineError;
 
 use super::plugins::components::ComponentEngine;
 
@@ -16,7 +16,7 @@ pub trait ViewRenderer {
     /// # Errors
     ///
     /// This function will return an error if render fails
-    fn render<S: Serialize>(&self, key: &str, data: S) -> Result<String>;
+    fn render<S: Serialize>(&self, key: &str, data: S) -> Result<String, ViewEngineError>;
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -33,7 +33,7 @@ impl<E> ViewEngine<E> {
 ///
 /// This struct provides functionality to render templates using the Minijinja templating engine
 /// directly from raw template strings.
-pub fn template<S>(template: &str, data: S) -> Result<String>
+pub fn template<S>(template: &str, data: S) -> Result<String, ViewEngineError>
 where
     S: Serialize,
 {
@@ -73,17 +73,18 @@ pub struct View {
 }
 
 impl View {
-    pub fn build(config: Config) -> Result<Self> {
+    pub fn build(config: &Config) -> Result<Self, ViewEngineError> {
+        let templates_path = config.templates.path.clone();
         let reloader = AutoReloader::new(move |notifier| {
+            let templates_path = templates_path.as_str();
             let mut env = minijinja::Environment::new();
             // Watch the template directory for changes in debug mode
-            let config_cloned = config.clone();
             if cfg!(debug_assertions) {
                 notifier.set_fast_reload(true);
-                notifier.watch_path(&config_cloned.templates.path, true);
+                notifier.watch_path(&templates_path, true);
             }
             // Load in the templates from the specified directory
-            env.set_loader(path_loader(&config_cloned.templates.path));
+            env.set_loader(path_loader(templates_path));
             Ok(env)
         });
         let component_engine = ComponentEngine::build(config).unwrap();
@@ -95,7 +96,7 @@ impl View {
 }
 
 impl ViewRenderer for View {
-    fn render<S: Serialize>(&self, key: &str, data: S) -> Result<String> {
+    fn render<S: Serialize>(&self, key: &str, data: S) -> Result<String, ViewEngineError> {
         let env = self.reloader.acquire_env()?;
         let template = env.get_template(key)?;
         let base_html = template.render(minijinja::Value::from_serialize(data))?;

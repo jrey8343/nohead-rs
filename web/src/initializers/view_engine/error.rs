@@ -20,4 +20,9 @@ pub enum Error {
     /// Return `500 Internal Server Error` on a component rendering error.
     #[error("error rendering component as mutex poisoned")]
     Mutex,
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+
+    #[error(transparent)]
+    Path(#[from] std::path::StripPrefixError),
 }

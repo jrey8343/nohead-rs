@@ -37,7 +37,7 @@ pub mod todos;
 pub fn html<T: rinja::Template>(tmpl: T) -> axum::response::Response {
     axum::response::IntoResponse::into_response(
         tmpl.render()
-            .map_err(crate::error::Error::Template)
+            .map_err(crate::error::Error::ViewEngine)
             .map(axum::response::Html),
     )
 }

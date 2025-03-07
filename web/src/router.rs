@@ -23,7 +23,7 @@ use crate::{
         todos::TodoController,
     },
     error::Result,
-    initializers::view_engine::{self, engine::ViewEngineInitializer},
+    initializers::view_engine::engine::ViewEngineInitializer,
     middlewares::auth::AuthBackend,
     state::AppState,
 };
