@@ -16,8 +16,14 @@
     --font-mono: Dank Mono, Operator Mono, Inconsolata, Fira Mono, ui-monospace, SF Mono,Monaco, Droid Sans Mono, Source Code Pro, Cascadia Code,Menlo, Consolas, DejaVu Sans Mono, monospace;
     --color-red-500: oklch(0.637 0.237 25.331);
     --color-red-600: oklch(0.577 0.245 27.325);
+    --color-orange-700: oklch(0.553 0.195 38.402);
     --color-yellow-600: oklch(0.681 0.162 75.834);
     --color-green-600: oklch(0.627 0.194 149.214);
+    --color-teal-600: oklch(0.6 0.118 184.704);
+    --color-blue-700: oklch(0.488 0.243 264.376);
+    --color-indigo-600: oklch(0.511 0.262 276.966);
+    --color-pink-600: oklch(0.592 0.249 0.584);
+    --color-stone-700: oklch(0.374 0.01 67.558);
     --spacing: 0.25rem;
     --text-base: var(--text-step-0);
     --text-3xl: 1.875rem;
@@ -1401,6 +1407,9 @@
     font-size: var(--text-3xl);
     line-height: var(--tw-leading, var(--text-3xl--line-height));
   }
+  .text-step-4 {
+    font-size: var(--text-step-4);
+  }
   .leading-none {
     --tw-leading: 1;
     line-height: 1;
@@ -1478,11 +1487,32 @@
   .\[color\:red\]\/50\! {
     color: color-mix(in oklab, red 50%, transparent) !important;
   }
+  .text-blue-700 {
+    color: var(--color-blue-700);
+  }
   .text-green-600 {
     color: var(--color-green-600);
   }
+  .text-indigo-600 {
+    color: var(--color-indigo-600);
+  }
+  .text-orange-700 {
+    color: var(--color-orange-700);
+  }
+  .text-pink-600 {
+    color: var(--color-pink-600);
+  }
   .text-red-600 {
     color: var(--color-red-600);
+  }
+  .text-stone-700 {
+    color: var(--color-stone-700);
+  }
+  .text-surface-4 {
+    color: var(--color-surface-4);
+  }
+  .text-teal-600 {
+    color: var(--color-teal-600);
   }
   .text-yellow-600 {
     color: var(--color-yellow-600);

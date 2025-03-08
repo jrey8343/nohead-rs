@@ -1,12 +1,15 @@
 use std::{path::Path, time::Duration};
 
-use axum::{Extension, Router, routing::get};
+use axum::{Extension, Router, http::header, routing::get};
 use axum_login::{AuthManagerLayer, login_required};
 use nohead_rs_db::DeserializeOwned;
 use nohead_rs_worker::WorkerStorage;
 use serde::Serialize;
 use tower::ServiceBuilder;
-use tower_http::{services::ServeDir, timeout::TimeoutLayer, trace::TraceLayer};
+use tower_http::{
+    services::ServeDir, set_header::SetResponseHeaderLayer, timeout::TimeoutLayer,
+    trace::TraceLayer,
+};
 use tower_sessions_sqlx_store::SqliteStore;
 
 use crate::{
@@ -40,6 +43,13 @@ where
         Path::new(env!("CARGO_MANIFEST_DIR")).join(Path::new(&app_state.config.static_assets.path)),
     );
 
+    //FIX: Research whether this is optimal. Doing it mainly for development purposes so tailwind
+    //reloads
+    let no_cache_layer = SetResponseHeaderLayer::if_not_present(
+        header::CACHE_CONTROL,
+        header::HeaderValue::from_static("no-store, must-revalidate"),
+    );
+
     let mut router = Router::new()
         .route(
             "/protected",
@@ -54,7 +64,6 @@ where
         .merge(RegisterConfirmController::router())
         .merge(PingController::router())
         .merge(TestController::router())
-        .nest_service("/static", static_assets)
         .with_state(app_state.clone())
         .layer(ServiceBuilder::new().layer((
             TraceLayer::new_for_http(),
@@ -63,7 +72,9 @@ where
             TimeoutLayer::new(Duration::from_secs(10)),
             auth_layer,
             Extension(worker_layer),
-        )));
+        )))
+        .nest_service("/static", static_assets)
+        .layer(no_cache_layer);
 
     router = view_engine.after_routes(router, app_state)?;
 
