@@ -6,6 +6,7 @@
 @import "../styles/global/global.css" layer(global);
 @import "../styles/compositions/box.css" layer(compositions);
 @import "../styles/blocks/button.css" layer(components);
+@import "tailwindcss/utilities" layer(utilities);
 
 
 @theme {
