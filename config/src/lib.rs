@@ -26,7 +26,7 @@ pub struct Config {
     pub tracing: TracingConfig,
     pub static_assets: StaticAssetsConfig,
     pub templates: TemplatesConfig,
-    pub wasm_components: WasmComponentsConfig,
+    pub components: ComponentsConfig,
     pub mailer: MailerConfig,
 }
 
@@ -96,8 +96,9 @@ pub struct TemplatesConfig {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[cfg_attr(test, derive(PartialEq))]
-pub struct WasmComponentsConfig {
+pub struct ComponentsConfig {
     pub path: String,
+    pub wasm: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -170,6 +171,8 @@ where
                 .key("database")
                 .key("tracing")
                 .key("static_assets")
+                .key("templates")
+                .key("components")
                 .key("mailer"),
         )
         .merge(Toml::file("config/app.toml"))

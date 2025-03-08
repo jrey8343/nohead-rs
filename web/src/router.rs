@@ -2,13 +2,11 @@ use std::{path::Path, time::Duration};
 
 use axum::{Extension, Router, routing::get};
 use axum_login::{AuthManagerLayer, login_required};
-use nohead_rs_config::Environment;
 use nohead_rs_db::DeserializeOwned;
 use nohead_rs_worker::WorkerStorage;
 use serde::Serialize;
 use tower::ServiceBuilder;
 use tower_http::{services::ServeDir, timeout::TimeoutLayer, trace::TraceLayer};
-use tower_livereload::LiveReloadLayer;
 use tower_sessions_sqlx_store::SqliteStore;
 
 use crate::{
@@ -20,6 +18,7 @@ use crate::{
         },
         home::HomeController,
         ping::PingController,
+        test::TestController,
         todos::TodoController,
     },
     error::Result,
@@ -37,7 +36,9 @@ pub fn init_router<T>(
 where
     T: 'static + Serialize + DeserializeOwned + Send + Sync + Unpin,
 {
-    let static_assets = ServeDir::new(Path::new(env!("CARGO_MANIFEST_DIR")).join("static"));
+    let static_assets = ServeDir::new(
+        Path::new(env!("CARGO_MANIFEST_DIR")).join(Path::new(&app_state.config.static_assets.path)),
+    );
 
     let mut router = Router::new()
         .route(
@@ -52,6 +53,7 @@ where
         .merge(RegisterController::router())
         .merge(RegisterConfirmController::router())
         .merge(PingController::router())
+        .merge(TestController::router())
         .nest_service("/static", static_assets)
         .with_state(app_state.clone())
         .layer(ServiceBuilder::new().layer((
@@ -63,12 +65,7 @@ where
             Extension(worker_layer),
         )));
 
-    let _ = view_engine.after_routes(router.clone(), app_state)?;
-
-    // enable live reload in development
-    if app_state.env == Environment::Development {
-        router = router.layer(LiveReloadLayer::new());
-    }
+    router = view_engine.after_routes(router, app_state)?;
 
     Ok(router)
 }

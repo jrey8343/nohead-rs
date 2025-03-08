@@ -2,7 +2,7 @@ use nohead_rs_config::Config;
 use serde_json::json;
 use std::{
     collections::HashMap,
-    path::Path,
+    path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
 
@@ -11,19 +11,19 @@ use crate::initializers::view_engine::error::Error as ViewEngineError;
 #[derive(Clone)]
 pub struct ComponentEngine {
     pub plugin: Arc<Mutex<extism::Plugin>>,
-    pub wasm_components_path: String,
+    pub path: PathBuf,
 }
 
 impl ComponentEngine {
     pub fn build(config: &Config) -> Result<Self, ViewEngineError> {
-        let wasm_components_path = config.wasm_components.path.clone();
-        let path = Path::new(&wasm_components_path);
-        let enhance_wasm = extism::Wasm::file(path);
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(Path::new(&config.components.path));
+        let wasm_path = path.join(&config.components.wasm);
+        let enhance_wasm = extism::Wasm::file(wasm_path);
         let manifest = extism::Manifest::new([enhance_wasm]);
         let plugin = extism::Plugin::new(&manifest, [], true)?;
         Ok(Self {
             plugin: Arc::new(Mutex::new(plugin)),
-            wasm_components_path,
+            path,
         })
     }
     /*
@@ -44,7 +44,7 @@ impl ComponentEngine {
         This can be passed to the minijinja render function to enhance the HTML
     */
     pub fn inject(&mut self, base_html: &str) -> Result<String, ViewEngineError> {
-        let elements = read_elements(&self.wasm_components_path); // Read custom elements from the directory
+        let elements = read_elements(&self.path); // Read custom elements from the directory
         let data = json!({
             "markup": base_html,
             "elements": elements,
@@ -56,10 +56,9 @@ impl ComponentEngine {
     }
 }
 
-fn read_elements(directory: &str) -> HashMap<String, String> {
+fn read_elements(path: &Path) -> HashMap<String, String> {
     let mut elements = HashMap::new();
-    let base_path = Path::new(directory);
-    let _ = read_directory(base_path, base_path, &mut elements);
+    let _ = read_directory(path, path, &mut elements);
     elements
 }
 

@@ -17,8 +17,9 @@ path = "static"
 [templates]
 path = "templates"
 
-[wasm_components]
-path = "wasm"
+[components]
+path = "components"
+wasm = "enhance-ssr.wasm"
 
 [mailer]
 base_url = "SET_BY_WIREMOCK_IN_TEST_ENVIRONMENT"

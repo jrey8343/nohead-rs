@@ -1,6 +1,7 @@
 pub mod app;
 pub mod controllers;
 pub mod error;
+pub mod format;
 pub mod initializers;
 pub mod middlewares;
 pub mod router;

@@ -2,6 +2,7 @@ use crate::error::Error;
 
 pub mod auth;
 pub mod home;
+pub mod test;
 pub mod todos;
 
 /// ------------------------------------------------------------------------

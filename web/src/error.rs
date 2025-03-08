@@ -1,5 +1,10 @@
 use axum::{
-    http::StatusCode,
+    extract::rejection::JsonRejection,
+    http::{
+        self, StatusCode,
+        header::{InvalidHeaderName, InvalidHeaderValue},
+        method::InvalidMethod,
+    },
     response::{IntoResponse, Response},
 };
 use color_eyre::eyre;
@@ -41,6 +46,25 @@ pub enum Error {
     /// Return `500 Internal Server Error` on a worker storage error.
     #[error("error interacting with worker storage")]
     Worker(#[from] nohead_rs_worker::Error),
+
+    #[error(transparent)]
+    Http(#[from] axum::http::Error),
+
+    #[error(transparent)]
+    JSON(#[from] serde_json::Error),
+
+    #[error(transparent)]
+    JsonRejection(#[from] JsonRejection),
+
+    #[error(transparent)]
+    InvalidHeaderValue(#[from] InvalidHeaderValue),
+
+    #[error(transparent)]
+    InvalidHeaderName(#[from] InvalidHeaderName),
+
+    #[error(transparent)]
+    InvalidMethod(#[from] InvalidMethod),
+
     /// Enumerate any possible app arrors here.
     ///
     /// Return `500 Internal Server Error` on a `eyre::Error`.
@@ -51,47 +75,32 @@ pub enum Error {
 impl Error {
     fn status_code(&self) -> StatusCode {
         match self {
-            // Unauthenticated user
             Error::Unauthenticated | Error::InvalidRegisterToken => StatusCode::UNAUTHORIZED,
-
-            // Template rendering error
             Error::ViewEngine(_) => StatusCode::INTERNAL_SERVER_ERROR,
-
-            // Record not found
             Error::Database(nohead_rs_db::Error::NoRecordFound) => StatusCode::NOT_FOUND,
-
-            // Unique constraint violation
             Error::Database(nohead_rs_db::Error::UniqueConstraint(_)) => {
                 StatusCode::UNPROCESSABLE_ENTITY
             }
-
-            // Validation error
             Error::Database(nohead_rs_db::Error::ValidationError(_)) => {
                 StatusCode::UNPROCESSABLE_ENTITY
             }
-
-            // General database error
             Error::Database(nohead_rs_db::Error::DatabaseError(_)) => {
                 StatusCode::INTERNAL_SERVER_ERROR
             }
-
-            // Password hashing error
             Error::Database(nohead_rs_db::Error::PasswordHashError(_)) => {
                 StatusCode::INTERNAL_SERVER_ERROR
             }
-
-            // Request error while interacting with mailer API
             Error::Mailer(nohead_rs_mailer::Error::Request(_)) => StatusCode::INTERNAL_SERVER_ERROR,
-
-            // Invalid inputs to mailer
             Error::Mailer(nohead_rs_mailer::Error::Validation(_)) => {
                 StatusCode::UNPROCESSABLE_ENTITY
             }
-
-            // Worker storage error
             Error::Worker(_) => StatusCode::INTERNAL_SERVER_ERROR,
-
-            // Unexpected error
+            Error::Http(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::JSON(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::JsonRejection(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::InvalidHeaderValue(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::InvalidHeaderName(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::InvalidMethod(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Error::Unexpected(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -146,6 +155,30 @@ impl IntoResponse for Error {
 
             Error::Worker(ref err) => {
                 error!("an error occured while interacting with worker: {:?}", err);
+            }
+
+            Error::Http(ref err) => {
+                error!("an error occured while interacting with http: {:?}", err);
+            }
+
+            Error::JSON(ref err) => {
+                error!("an error occured while parsing json: {:?}", err);
+            }
+
+            Error::JsonRejection(ref err) => {
+                error!("an error occured while parsing json: {:?}", err);
+            }
+
+            Error::InvalidHeaderValue(ref err) => {
+                error!("an error occured while parsing header value: {:?}", err);
+            }
+
+            Error::InvalidHeaderName(ref err) => {
+                error!("an error occured while parsing header name: {:?}", err);
+            }
+
+            Error::InvalidMethod(ref err) => {
+                error!("an error occured while parsing method: {:?}", err);
             }
 
             Error::Unexpected(ref err) => {

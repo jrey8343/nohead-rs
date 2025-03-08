@@ -3,6 +3,7 @@ use minijinja::path_loader;
 use minijinja_autoreload::AutoReloader;
 use nohead_rs_config::Config;
 use serde::Serialize;
+use std::path::Path;
 use std::sync::Arc;
 use tower_livereload::{LiveReloadLayer, Reloader};
 
@@ -74,20 +75,22 @@ pub struct View {
 
 impl View {
     pub fn build(config: &Config) -> Result<Self, ViewEngineError> {
-        let templates_path = config.templates.path.clone();
+        let templates_path =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join(Path::new(&config.templates.path));
+
         let reloader = AutoReloader::new(move |notifier| {
-            let templates_path = templates_path.as_str();
+            let templates_path = templates_path.clone();
             let mut env = minijinja::Environment::new();
             // Watch the template directory for changes in debug mode
             if cfg!(debug_assertions) {
                 notifier.set_fast_reload(true);
-                notifier.watch_path(templates_path, true);
+                notifier.watch_path(&templates_path, true);
             }
             // Load in the templates from the specified directory
             env.set_loader(path_loader(templates_path));
             Ok(env)
         });
-        let component_engine = ComponentEngine::build(config).unwrap();
+        let component_engine = ComponentEngine::build(config)?;
         Ok(Self {
             reloader: Arc::new(reloader),
             component_engine,

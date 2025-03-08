@@ -17,8 +17,9 @@ path = "app/web/static"
 [templates]
 path = "templates"
 
-[wasm_components]
-path = "wasm"
+[components]
+path = "components"
+wasm = "enhance-ssr.wasm"
 
 [mailer]
 base_url = "https://api.resend.com"
