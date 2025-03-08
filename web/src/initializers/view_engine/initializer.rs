@@ -19,13 +19,7 @@ impl ViewEngineInitializer {
         tokio::spawn(async move {
             // Create the watcher inside the task
             let mut watcher = notify::recommended_watcher(move |_| {
-                //FIX: Get css path from config
-                // Command::new("npx @tailwind/cli").current_dir
-                //     .arg("-i")
-                //     .arg(Path::new(env!("CARGO_MANIFEST_DIR")).join("styles/input.css"))
-                //     .arg(Path::new(env!("CARGO_MANIFEST_DIR")).join("static/css/output.css"))
-                //     .output()
-                //     .expect("Failed to run tailwind");
+                let _ = generate_css();
                 browser_reloader.reload();
             })
             .expect("Failed to create watcher");
@@ -44,15 +38,29 @@ impl ViewEngineInitializer {
         Ok(())
     }
 
-    pub fn after_routes(&self, mut router: AxumRouter, state: &AppState) -> Result<AxumRouter> {
+    pub fn after_routes(self, mut router: AxumRouter, state: &AppState) -> Result<AxumRouter> {
         let minijinja_engine = View::build(&state.config)?;
-        let live_reload = self.live_reload.clone();
 
         if state.env == Environment::Development {
             tracing::info!("live reload enabled for max dx");
-            router = router.layer(live_reload);
+            router = router.layer(self.live_reload_layer);
         }
 
-        Ok(router.layer(Extension(ViewEngine::from(minijinja_engine))))
+        router = router.layer(Extension(ViewEngine::from(minijinja_engine)));
+
+        Ok(router)
     }
+}
+
+pub fn generate_css() -> Result<()> {
+    Command::new("npx")
+        .arg("@tailwind/cli")
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .arg("-i")
+        .arg("./styles/input.css")
+        .arg("-o")
+        .arg("./static/css/output.css")
+        .output()
+        .expect("failed to run tailwind");
+    Ok(())
 }

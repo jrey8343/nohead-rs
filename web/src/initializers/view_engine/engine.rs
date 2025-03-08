@@ -109,16 +109,16 @@ impl ViewRenderer for View {
 }
 
 pub struct ViewEngineInitializer {
-    pub live_reload: LiveReloadLayer,
+    pub live_reload_layer: LiveReloadLayer,
     pub browser_reloader: Reloader,
 }
 
 impl Default for ViewEngineInitializer {
     fn default() -> Self {
-        let live_reload = LiveReloadLayer::new();
-        let browser_reloader = live_reload.reloader();
+        let live_reload_layer = LiveReloadLayer::new();
+        let browser_reloader = live_reload_layer.reloader();
         Self {
-            live_reload,
+            live_reload_layer,
             browser_reloader,
         }
     }
