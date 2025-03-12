@@ -20,21 +20,14 @@ impl ViewEngineInitializer {
     }
 
     pub fn before_run(&self, state: AppState) -> Result<()> {
-        let browser_reloader = self.browser_reloader.clone();
         let last_events = Arc::new(Mutex::new(HashMap::new()));
+
+        let browser_reloader = self.browser_reloader.clone();
+
         // Spawn a task to keep the watcher alive
         tokio::spawn(async move {
-            // Create the watcher inside the task
-            // let mut watcher = notify::recommended_watcher(move |_| {
-            //     tracing::info!("♼ reloading browser");
-            //     // let _ = generate_css();
-            //     browser_reloader.reload();
-            // })
-            // .expect("Failed to create watcher");
-            //
             let mut watcher = notify::recommended_watcher({
                 let last_events = Arc::clone(&last_events);
-
                 move |res: Result<notify::Event, _>| {
                     match res {
                         Ok(event) => {
@@ -42,6 +35,9 @@ impl ViewEngineInitializer {
                                 let mut last_events = last_events.lock().unwrap();
 
                                 // Ignore temp/backup files
+                                // This stops the reloader
+                                // from re-running
+                                // unnecessarily
                                 if path.to_string_lossy().ends_with('~')
                                     || path
                                         .extension()
@@ -51,22 +47,26 @@ impl ViewEngineInitializer {
                                     return;
                                 }
 
-                                // Get current time and check for duplicates
                                 let now = Instant::now();
-                                let last_time = last_events.entry(path.clone()).or_insert(now);
 
-                                // If the same file was modified within 300ms, ignore it
-                                if now.duration_since(*last_time)
-                                    < std::time::Duration::from_millis(300)
-                                {
-                                    return;
+                                // Only reload if enough time has passed since the last accepted reload
+                                match last_events.get(path) {
+                                    Some(last_time)
+                                        if now.duration_since(*last_time)
+                                            < std::time::Duration::from_millis(300) =>
+                                    {
+                                        // Too soon, skip this reload
+                                        return;
+                                    }
+                                    _ => {
+                                        // Accept this event and record time *after* accepting it
+                                        tracing::info!("File changed: {:?}", path);
+
+                                        browser_reloader.reload();
+
+                                        last_events.insert(path.clone(), now);
+                                    }
                                 }
-
-                                // Update last event time
-                                *last_time = now;
-
-                                tracing::info!("File changed: {:?}", path);
-                                browser_reloader.reload();
                             }
                         }
                         Err(e) => tracing::error!("Watch error: {:?}", e),
@@ -90,21 +90,16 @@ impl ViewEngineInitializer {
         });
         Ok(())
     }
-
     pub fn after_routes(self, mut router: AxumRouter, state: &AppState) -> Result<AxumRouter> {
         let minijinja_engine = View::build(&state.config)?;
 
         if state.env == Environment::Development {
-            tracing::info!("live reload enabled for max dx");
-            router = router.layer(self.live_reload_layer);
+                tracing::info!("live reload enabled in development mode");
+                router = router.layer(self.live_reload_layer);
         }
 
         router = router.layer(Extension(ViewEngine::from(minijinja_engine)));
 
         Ok(router)
     }
-}
-
-fn generate_css() -> Result<()> {
-    todo!()
 }

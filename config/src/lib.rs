@@ -66,7 +66,7 @@ impl ServerConfig {
     ///
     /// ```rust
     /// let config: Config = load_config(Environment::Development);
-    /// let listener = TcpListener::bind(&config.server.addr).await?;
+    /// let listener = TcpListener::bind(&config.server.addr()).await?;
     /// serve(listener, app.into_make_service()).await?;
     ///  ```
     pub fn addr(&self) -> SocketAddr {
