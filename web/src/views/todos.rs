@@ -1,37 +1,39 @@
 use axum::response::{IntoResponse, Response};
 use nohead_rs_db::entities::todo::Todo;
-use rinja::Template;
+use serde_json::json;
 
-use crate::middlewares::flash::{FlashMessage, IncomingFlashes};
-
-use super::html;
+use crate::{
+    format,
+    initializers::view_engine::engine::{View, ViewEngine},
+    middlewares::flash::IncomingFlashes,
+};
 
 pub enum TodoView {
-    Index(Vec<Todo>, IncomingFlashes),
-    Show(Todo, IncomingFlashes),
-}
-
-#[derive(Debug, Template)]
-#[template(path = "todos/index.html")]
-pub struct Index {
-    pub todos: Vec<Todo>,
-    pub flashes: Vec<FlashMessage>,
-}
-
-#[derive(Debug, Template)]
-#[template(path = "todos/show.html")]
-pub struct Show {
-    pub todo: Todo,
-    pub flashes: Vec<FlashMessage>,
+    Index(ViewEngine<View>, Vec<Todo>, IncomingFlashes),
+    Show(ViewEngine<View>, Todo, IncomingFlashes),
 }
 
 impl IntoResponse for TodoView {
     fn into_response(self) -> Response {
         match self {
-            TodoView::Index(todos, IncomingFlashes { flashes, .. }) => {
-                html(Index { todos, flashes })
+            TodoView::Index(ViewEngine(v), todos, IncomingFlashes { flashes, .. }) => {
+                format::render()
+                    .view(
+                        &v,
+                        "todos/index.html",
+                        json!({ "todos": todos, "flashes": flashes }),
+                    )
+                    .into_response()
             }
-            TodoView::Show(todo, IncomingFlashes { flashes, .. }) => html(Show { todo, flashes }),
+            TodoView::Show(ViewEngine(v), todo, IncomingFlashes { flashes, .. }) => {
+                format::render()
+                    .view(
+                        &v,
+                        "todos/show.html",
+                        json!({ "todo": todo, "flashes": flashes }),
+                    )
+                    .into_response()
+            }
         }
     }
 }

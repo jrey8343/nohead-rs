@@ -9,6 +9,7 @@ use nohead_rs_db::{
 
 use crate::{
     error::Error,
+    initializers::view_engine::engine::{View, ViewEngine},
     middlewares::{
         auth::AuthSession,
         flash::{Flash, IncomingFlashes},
@@ -27,8 +28,11 @@ impl RegisterConfirmController {
         )
     }
 
-    pub async fn index(flashes: IncomingFlashes) -> RegisterConfirmView {
-        RegisterConfirmView::Index(flashes)
+    pub async fn index(
+        v: ViewEngine<View>,
+        flashes: IncomingFlashes,
+    ) -> (IncomingFlashes, RegisterConfirmView) {
+        (flashes.clone(), RegisterConfirmView::Index(v, flashes))
     }
 
     pub async fn verify(

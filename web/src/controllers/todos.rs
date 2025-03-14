@@ -12,6 +12,7 @@ use nohead_rs_db::entities::{
 
 use crate::{
     error::Error,
+    initializers::view_engine::engine::{View, ViewEngine},
     middlewares::flash::{Flash, IncomingFlashes},
     state::AppState,
     views::todos::TodoView,
@@ -42,12 +43,13 @@ impl Controller for TodoController {
     }
 
     async fn read_all(
+        v: ViewEngine<View>,
         flashes: IncomingFlashes,
         State(app_state): State<AppState>,
     ) -> Result<(IncomingFlashes, Self::View), Self::Error> {
         let todos = Todo::load_all(&app_state.db_pool).await?;
 
-        Ok((flashes.clone(), TodoView::Index(todos, flashes)))
+        Ok((flashes.clone(), TodoView::Index(v, todos, flashes)))
     }
 
     async fn create(
@@ -74,13 +76,14 @@ impl Controller for TodoController {
     }
 
     async fn read_one(
+        v: ViewEngine<View>,
         flashes: IncomingFlashes,
         Path(id): Path<Self::Id>,
         State(app_state): State<AppState>,
     ) -> Result<(IncomingFlashes, Self::View), Self::Error> {
         let todo = Todo::load(id, &app_state.db_pool).await?;
 
-        Ok((flashes.clone(), TodoView::Show(todo, flashes)))
+        Ok((flashes.clone(), TodoView::Show(v, todo, flashes)))
     }
 
     async fn update(

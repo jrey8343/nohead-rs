@@ -15,9 +15,6 @@
     --font-serif: Iowan Old Style, Palatino Linotype, URW Palladio L, P052, serif;
     --font-mono: Dank Mono, Operator Mono, Inconsolata, Fira Mono, ui-monospace, SF Mono,Monaco, Droid Sans Mono, Source Code Pro, Cascadia Code,Menlo, Consolas, DejaVu Sans Mono, monospace;
     --color-red-500: oklch(0.637 0.237 25.331);
-    --color-red-700: oklch(0.505 0.213 27.518);
-    --color-orange-700: oklch(0.553 0.195 38.402);
-    --color-green-700: oklch(0.527 0.154 150.069);
     --color-blue-700: oklch(0.488 0.243 264.376);
     --spacing: 0.25rem;
     --text-base: var(--text-step-0);
@@ -1478,15 +1475,6 @@
   }
   .text-blue-700 {
     color: var(--color-blue-700);
-  }
-  .text-green-700 {
-    color: var(--color-green-700);
-  }
-  .text-orange-700 {
-    color: var(--color-orange-700);
-  }
-  .text-red-700 {
-    color: var(--color-red-700);
   }
   .capitalize {
     text-transform: capitalize;

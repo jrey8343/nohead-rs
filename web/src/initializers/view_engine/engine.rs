@@ -1,13 +1,12 @@
-
 use super::error::Error as ViewEngineError;
 use axum::{Extension, extract::FromRequestParts, http::request::Parts};
 use minijinja::path_loader;
-use tower_livereload::{LiveReloadLayer, Reloader};
 use minijinja_autoreload::AutoReloader;
 use nohead_rs_config::Config;
 use serde::Serialize;
 use std::path::Path;
 use std::sync::Arc;
+use tower_livereload::{LiveReloadLayer, Reloader};
 
 use super::plugins::components::ComponentEngine;
 

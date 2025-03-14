@@ -25,7 +25,7 @@
             </form>
         </nav>
         {% block content %}{% endblock %}
-        {% if flashes %}
+        {% if flashes.length > 0 %}
             <dialog open>
                 {% for flash in flashes %}<p>{{ flash.message }}</p>{% endfor %}
                 <form method="dialog">

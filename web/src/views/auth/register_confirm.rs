@@ -1,24 +1,26 @@
 use axum::response::{IntoResponse, Response};
-use rinja::Template;
+use serde_json::json;
 
-use crate::middlewares::flash::{FlashMessage, IncomingFlashes};
-
-use crate::views::html;
+use crate::format;
+use crate::initializers::view_engine::engine::{View, ViewEngine};
+use crate::middlewares::flash::IncomingFlashes;
 
 pub enum RegisterConfirmView {
-    Index(IncomingFlashes),
-}
-
-#[derive(Debug, Template)]
-#[template(path = "auth/register_confirm/index.html")]
-pub struct Index {
-    pub flashes: Vec<FlashMessage>,
+    Index(ViewEngine<View>, IncomingFlashes),
 }
 
 impl IntoResponse for RegisterConfirmView {
     fn into_response(self) -> Response {
         match self {
-            RegisterConfirmView::Index(IncomingFlashes { flashes, .. }) => html(Index { flashes }),
+            RegisterConfirmView::Index(ViewEngine(v), IncomingFlashes { flashes, .. }) => {
+                format::render()
+                    .view(
+                        &v,
+                        "auth/register_confirm/index.html",
+                        json!({"flashes": flashes}),
+                    )
+                    .into_response()
+            }
         }
     }
 }

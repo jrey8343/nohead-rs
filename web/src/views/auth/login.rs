@@ -1,26 +1,27 @@
 use axum::response::{IntoResponse, Response};
-use rinja::Template;
+use serde_json::json;
 
-use crate::middlewares::flash::{FlashMessage, IncomingFlashes};
-
-use crate::views::html;
+use crate::{
+    format::{self},
+    initializers::view_engine::engine::{View, ViewEngine},
+    middlewares::flash::IncomingFlashes,
+};
 
 pub enum LoginView {
-    Index(IncomingFlashes, Option<String>),
-}
-
-#[derive(Debug, Template)]
-#[template(path = "auth/login/index.html")]
-pub struct Index {
-    pub flashes: Vec<FlashMessage>,
-    next: Option<String>,
+    Index(ViewEngine<View>, IncomingFlashes, Option<String>),
 }
 
 impl IntoResponse for LoginView {
     fn into_response(self) -> Response {
         match self {
-            LoginView::Index(IncomingFlashes { flashes, .. }, next) => {
-                html(Index { flashes, next })
+            LoginView::Index(ViewEngine(v), IncomingFlashes { flashes, .. }, next) => {
+                format::render()
+                    .view(
+                        &v,
+                        "auth/login/index.html",
+                        json!({ "flashes": flashes, "next": next}),
+                    )
+                    .into_response()
             }
         }
     }

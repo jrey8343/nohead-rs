@@ -56,7 +56,6 @@ impl ViewEngineInitializer {
                                             < std::time::Duration::from_millis(300) =>
                                     {
                                         // Too soon, skip this reload
-                                        return;
                                     }
                                     _ => {
                                         // Accept this event and record time *after* accepting it

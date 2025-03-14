@@ -21,7 +21,6 @@ use crate::{
         },
         home::HomeController,
         ping::PingController,
-        test::TestController,
         todos::TodoController,
     },
     error::Result,
@@ -63,7 +62,6 @@ where
         .merge(RegisterController::router())
         .merge(RegisterConfirmController::router())
         .merge(PingController::router())
-        .merge(TestController::router())
         .with_state(app_state.clone())
         .layer(ServiceBuilder::new().layer((
             TraceLayer::new_for_http(),

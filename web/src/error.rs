@@ -1,7 +1,7 @@
 use axum::{
     extract::rejection::JsonRejection,
     http::{
-        self, StatusCode,
+        StatusCode,
         header::{InvalidHeaderName, InvalidHeaderValue},
         method::InvalidMethod,
     },
@@ -64,7 +64,6 @@ pub enum Error {
 
     #[error(transparent)]
     InvalidMethod(#[from] InvalidMethod),
-
     /// Enumerate any possible app arrors here.
     ///
     /// Return `500 Internal Server Error` on a `eyre::Error`.

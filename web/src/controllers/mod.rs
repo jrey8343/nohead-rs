@@ -7,6 +7,7 @@ use axum::{
 use nohead_rs_db::{DeserializeOwned, Validate};
 
 use crate::{
+    initializers::view_engine::engine::{View, ViewEngine},
     middlewares::flash::{Flash, IncomingFlashes},
     state::AppState,
 };
@@ -14,7 +15,6 @@ use crate::{
 pub mod auth;
 pub mod home;
 pub mod ping;
-pub mod test;
 pub mod todos;
 
 /// ------------------------------------------------------------------------
@@ -67,6 +67,7 @@ pub trait Controller {
 
     /// Index handler to list all records
     async fn read_all(
+        v: ViewEngine<View>,
         flashes: IncomingFlashes,
         State(app_state): State<AppState>,
     ) -> Result<(IncomingFlashes, Self::View), Self::Error>;
@@ -86,6 +87,7 @@ pub trait Controller {
 
     /// Show handler to display a single record
     async fn read_one(
+        v: ViewEngine<View>,
         flashes: IncomingFlashes,
         Path(id): Path<Self::Id>,
         State(app_state): State<AppState>,

@@ -1,5 +1,6 @@
 use crate::{
     error::Error,
+    initializers::view_engine::engine::{View, ViewEngine},
     middlewares::flash::{Flash, IncomingFlashes},
     state::AppState,
     views::auth::register::RegisterView,
@@ -25,8 +26,11 @@ impl RegisterController {
         )
     }
 
-    pub async fn index(flashes: IncomingFlashes) -> (IncomingFlashes, RegisterView) {
-        (flashes.clone(), RegisterView::Index(flashes))
+    pub async fn index(
+        v: ViewEngine<View>,
+        flashes: IncomingFlashes,
+    ) -> (IncomingFlashes, RegisterView) {
+        (flashes.clone(), RegisterView::Index(v, flashes))
     }
 
     pub async fn register(

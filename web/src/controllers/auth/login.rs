@@ -6,6 +6,7 @@ use nohead_rs_db::entities::user::UserCredentials;
 use serde::Deserialize;
 
 use crate::error::Error;
+use crate::initializers::view_engine::engine::{View, ViewEngine};
 use crate::middlewares::auth::AuthSession;
 use crate::middlewares::flash::{Flash, IncomingFlashes};
 use crate::state::AppState;
@@ -29,10 +30,11 @@ impl LoginController {
     }
 
     pub async fn index(
+        v: ViewEngine<View>,
         Query(NextUrl { next }): Query<NextUrl>,
         flashes: IncomingFlashes,
     ) -> (IncomingFlashes, LoginView) {
-        (flashes.clone(), LoginView::Index(flashes, next))
+        (flashes.clone(), LoginView::Index(v, flashes, next))
     }
 
     pub async fn login(
