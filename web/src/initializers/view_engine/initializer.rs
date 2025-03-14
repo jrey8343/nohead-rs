@@ -94,8 +94,8 @@ impl ViewEngineInitializer {
         let minijinja_engine = View::build(&state.config)?;
 
         if state.env == Environment::Development {
-                tracing::info!("live reload enabled in development mode");
-                router = router.layer(self.live_reload_layer);
+            tracing::info!("live reload enabled in development mode");
+            router = router.layer(self.live_reload_layer);
         }
 
         router = router.layer(Extension(ViewEngine::from(minijinja_engine)));
